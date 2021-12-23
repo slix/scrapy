@@ -141,8 +141,7 @@ class TextResponse(Response):
 
     def follow(self, url, callback=None, method='GET', headers=None, body=None,
                cookies=None, meta=None, encoding=None, priority=0,
-               dont_filter=False, errback=None, cb_kwargs=None, flags=None):
-        # type: (...) -> Request
+               dont_filter=False, errback=None, cb_kwargs=None, flags=None) -> Request:
         """
         Return a :class:`~.Request` instance to follow a link ``url``.
         It accepts the same arguments as ``Request.__init__`` method,
@@ -183,8 +182,7 @@ class TextResponse(Response):
     def follow_all(self, urls=None, callback=None, method='GET', headers=None, body=None,
                    cookies=None, meta=None, encoding=None, priority=0,
                    dont_filter=False, errback=None, cb_kwargs=None, flags=None,
-                   css=None, xpath=None):
-        # type: (...) -> Generator[Request, None, None]
+                   css=None, xpath=None) -> Generator[Request, None, None]:
         """
         A generator that produces :class:`~.Request` instances to follow all
         links in ``urls``. It accepts the same arguments as the :class:`~.Request`'s
@@ -247,8 +245,7 @@ class _InvalidSelector(ValueError):
     """
 
 
-def _url_from_selector(sel):
-    # type: (parsel.Selector) -> str
+def _url_from_selector(sel: parsel.Selector) -> str:
     if isinstance(sel.root, str):
         # e.g. ::attr(href) result
         return strip_html5_whitespace(sel.root)
