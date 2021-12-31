@@ -10,22 +10,30 @@ import warnings
 from scrapy import signals
 from scrapy.http import Request
 from scrapy.utils.httpobj import urlparse_cached
+from scrapy.crawler import Crawler
+from scrapy.http.request import Request
+from scrapy.http.response import Response
+from scrapy.item import Item
+from scrapy.spiders import Spider
+from scrapy.statscollectors import MemoryStatsCollector
+from tests.test_engine import AttrsItem
+from typing import Any, Dict, Iterator, List, Union
 
 logger = logging.getLogger(__name__)
 
 
 class OffsiteMiddleware:
 
-    def __init__(self, stats):
+    def __init__(self, stats: MemoryStatsCollector) -> None:
         self.stats = stats
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls, crawler: Crawler) -> OffsiteMiddleware:
         o = cls(crawler.stats)
         crawler.signals.connect(o.spider_opened, signal=signals.spider_opened)
         return o
 
-    def process_spider_output(self, response, result, spider):
+    def process_spider_output(self, response: Response, result: Union[Iterator[Any], List[Request]], spider: Spider) -> Iterator[Union[Request, Dict[str, int], Dict[str, List[Union[Any, str]]], Dict[str, List[str]], Dict[str, str], AttrsItem, Item, Dict[Any, Any]]]:
         for x in result:
             if isinstance(x, Request):
                 if x.dont_filter or self.should_follow(x, spider):
@@ -42,7 +50,7 @@ class OffsiteMiddleware:
             else:
                 yield x
 
-    def should_follow(self, request, spider):
+    def should_follow(self, request: Request, spider: Spider) -> bool:
         regex = self.host_regex
         # hostname can be None for wrong urls (like javascript links)
         host = urlparse_cached(request).hostname or ''
@@ -72,7 +80,7 @@ class OffsiteMiddleware:
         regex = fr'^(.*\.)?({"|".join(domains)})$'
         return re.compile(regex)
 
-    def spider_opened(self, spider):
+    def spider_opened(self, spider: Spider) -> None:
         self.host_regex = self.get_host_regex(spider)
         self.domains_seen = set()
 

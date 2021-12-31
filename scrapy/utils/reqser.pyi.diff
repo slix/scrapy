@@ -1,0 +1,26 @@
++ from scrapy.http.request import Request
++ from tests.test_request_dict import TestSpider
+- from typing import Optional
+?                    ^^^^^^^^
++ from typing import (
+?                    ^
++     Any,
++     Dict,
++     List,
++     Optional,
++     Union,
++ )
+
+
+- def request_from_dict(d: dict, spider: Optional['scrapy.Spider'] = ...) -> scrapy.Request: ...
++ def request_from_dict(
++     d: Union[Dict[str, Optional[Union[str, Dict[Any, Any], bytes, int, List[Any]]]], Dict[str, Union[str, Dict[Any, Any], bytes, int, List[Any]]], Dict[str, Union[str, Dict[bytes, List[bytes]], bytes, Dict[str, str], int, List[str]]], Dict[str, Optional[Union[str, Dict[bytes, List[bytes]], bytes, Dict[Any, Any], int, List[Any], Dict[str, int]]]]],
++     spider: Optional[TestSpider] = ...
++ ) -> Request: ...
+
+
+- def request_to_dict(request: scrapy.Request, spider: Optional['scrapy.Spider'] = ...) -> dict: ...
++ def request_to_dict(
++     request: Request,
++     spider: Optional[TestSpider] = ...
++ ) -> Union[Dict[str, Optional[Union[str, Dict[bytes, List[bytes]], bytes, Dict[Any, Any], int, List[Any], Dict[str, int]]]], Dict[str, Optional[Union[str, Dict[Any, Any], bytes, int, List[Any]]]], Dict[str, Union[str, Dict[bytes, List[bytes]], bytes, Dict[str, str], int, List[str]]], Dict[str, Union[str, Dict[Any, Any], bytes, int, List[Any]]]]: ...

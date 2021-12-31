@@ -29,6 +29,15 @@ from scrapy.utils.log import failure_to_exc_info
 from scrapy.utils.misc import md5sum
 from scrapy.utils.python import to_bytes
 from scrapy.utils.request import referer_str
+from scrapy.http.request import Request
+from scrapy.http.response import Response
+from scrapy.pipelines.media.MediaPipeline import SpiderInfo
+from tests.test_pipeline_crawl import MediaDownloadSpider
+from tests.test_pipeline_files import FilesPipelineTestAttrsItem, FilesPipelineTestItem, ItemWithFiles
+from twisted.internet.defer import Deferred
+from twisted.python.failure import Failure
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from unittest.mock import MagicMock
 
 
 logger = logging.getLogger(__name__)
@@ -39,20 +48,20 @@ class FileException(Exception):
 
 
 class FSFilesStore:
-    def __init__(self, basedir):
+    def __init__(self, basedir: str) -> None:
         if '://' in basedir:
             basedir = basedir.split('://', 1)[1]
         self.basedir = basedir
         self._mkdir(self.basedir)
         self.created_directories = defaultdict(set)
 
-    def persist_file(self, path, buf, info, meta=None, headers=None):
+    def persist_file(self, path: str, buf: BytesIO, info: SpiderInfo, meta: Optional[Dict[str, int]]=None, headers: Optional[Dict[str, str]]=None) -> None:
         absolute_path = self._get_filesystem_path(path)
         self._mkdir(os.path.dirname(absolute_path), info)
         with open(absolute_path, 'wb') as f:
             f.write(buf.getvalue())
 
-    def stat_file(self, path, info):
+    def stat_file(self, path: str, info: SpiderInfo) -> Dict[Any, Any]:
         absolute_path = self._get_filesystem_path(path)
         try:
             last_modified = os.path.getmtime(absolute_path)
@@ -64,11 +73,11 @@ class FSFilesStore:
 
         return {'last_modified': last_modified, 'checksum': checksum}
 
-    def _get_filesystem_path(self, path):
+    def _get_filesystem_path(self, path: str) -> str:
         path_comps = path.split('/')
         return os.path.join(self.basedir, *path_comps)
 
-    def _mkdir(self, dirname, domain=None):
+    def _mkdir(self, dirname: str, domain: Optional[SpiderInfo]=None) -> None:
         seen = self.created_directories[domain] if domain else set()
         if dirname not in seen:
             if not os.path.exists(dirname):
@@ -90,7 +99,7 @@ class S3FilesStore:
         'Cache-Control': 'max-age=172800',
     }
 
-    def __init__(self, uri):
+    def __init__(self, uri: str) -> None:
         if not is_botocore_available():
             raise NotConfigured('missing botocore library')
         import botocore.session
@@ -109,7 +118,7 @@ class S3FilesStore:
             raise ValueError(f"Incorrect URI scheme in {uri}, expected 's3'")
         self.bucket, self.prefix = uri[5:].split('/', 1)
 
-    def stat_file(self, path, info):
+    def stat_file(self, path: str, info: None) -> Deferred:
         def _onsuccess(boto_key):
             checksum = boto_key['ETag'].strip('"')
             last_modified = boto_key['LastModified']
@@ -118,14 +127,14 @@ class S3FilesStore:
 
         return self._get_boto_key(path).addCallback(_onsuccess)
 
-    def _get_boto_key(self, path):
+    def _get_boto_key(self, path: str) -> Deferred:
         key_name = f'{self.prefix}{path}'
         return threads.deferToThread(
             self.s3_client.head_object,
             Bucket=self.bucket,
             Key=key_name)
 
-    def persist_file(self, path, buf, info, meta=None, headers=None):
+    def persist_file(self, path: str, buf: MagicMock, info: None, meta: Optional[Dict[str, str]]=None, headers: Optional[Dict[str, str]]=None) -> Deferred:
         """Upload file to S3 storage"""
         key_name = f'{self.prefix}{path}'
         buf.seek(0)
@@ -141,7 +150,7 @@ class S3FilesStore:
             ACL=self.POLICY,
             **extra)
 
-    def _headers_to_botocore_kwargs(self, headers):
+    def _headers_to_botocore_kwargs(self, headers: Dict[str, str]) -> Dict[str, str]:
         """ Convert headers to botocore keyword arguments.
         """
         # This is required while we need to support both boto and botocore.
@@ -318,7 +327,7 @@ class FilesPipeline(MediaPipeline):
     DEFAULT_FILES_URLS_FIELD = 'file_urls'
     DEFAULT_FILES_RESULT_FIELD = 'files'
 
-    def __init__(self, store_uri, download_func=None, settings=None):
+    def __init__(self, store_uri: str, download_func: Optional[Callable]=None, settings: Optional[Settings]=None) -> None:
         if not store_uri:
             raise NotConfigured
 
@@ -347,7 +356,7 @@ class FilesPipeline(MediaPipeline):
         super().__init__(download_func=download_func, settings=settings)
 
     @classmethod
-    def from_settings(cls, settings):
+    def from_settings(cls, settings: Settings) -> FilesPipeline:
         s3store = cls.STORE_SCHEMES['s3']
         s3store.AWS_ACCESS_KEY_ID = settings['AWS_ACCESS_KEY_ID']
         s3store.AWS_SECRET_ACCESS_KEY = settings['AWS_SECRET_ACCESS_KEY']
@@ -370,7 +379,7 @@ class FilesPipeline(MediaPipeline):
         store_uri = settings['FILES_STORE']
         return cls(store_uri, settings=settings)
 
-    def _get_store(self, uri):
+    def _get_store(self, uri: str) -> Union[FSFilesStore, S3FilesStore]:
         if os.path.isabs(uri):  # to support win32 paths like: C:\\some\dir
             scheme = 'file'
         else:
@@ -378,7 +387,8 @@ class FilesPipeline(MediaPipeline):
         store_cls = self.STORE_SCHEMES[scheme]
         return store_cls(uri)
 
-    def media_to_download(self, request, info, *, item=None):
+    def media_to_download(self, request: Request, info: SpiderInfo, *,
+        item=None) -> Deferred:
         def _onsuccess(result):
             if not result:
                 return  # returning None force download
@@ -429,7 +439,8 @@ class FilesPipeline(MediaPipeline):
 
         raise FileException
 
-    def media_downloaded(self, response, request, info, *, item=None):
+    def media_downloaded(self, response: Response, request: Request, info: SpiderInfo, *,
+        item=None) -> Union[Dict[str, str], Dict[str, Optional[str]]]:
         referer = referer_str(request)
 
         if response.status != 200:
@@ -482,16 +493,17 @@ class FilesPipeline(MediaPipeline):
 
         return {'url': request.url, 'path': path, 'checksum': checksum, 'status': status}
 
-    def inc_stats(self, spider, status):
+    def inc_stats(self, spider: MediaDownloadSpider, status: str) -> None:
         spider.crawler.stats.inc_value('file_count', spider=spider)
         spider.crawler.stats.inc_value(f'file_status_count/{status}', spider=spider)
 
     # Overridable Interface
-    def get_media_requests(self, item, info):
+    def get_media_requests(self, item: Union[FilesPipelineTestItem, Dict[str, List[Union[Any, str]]], FilesPipelineTestAttrsItem, Dict[str, Union[str, List[str]]]], info: Optional[SpiderInfo]) -> List[Request]:
         urls = ItemAdapter(item).get(self.files_urls_field, [])
         return [Request(u) for u in urls]
 
-    def file_downloaded(self, response, request, info, *, item=None):
+    def file_downloaded(self, response: Response, request: Request, info: SpiderInfo, *,
+        item=None) -> str:
         path = self.file_path(request, response=response, info=info, item=item)
         buf = BytesIO(response.body)
         checksum = md5sum(buf)
@@ -499,12 +511,13 @@ class FilesPipeline(MediaPipeline):
         self.store.persist_file(path, buf, info)
         return checksum
 
-    def item_completed(self, results, item, info):
+    def item_completed(self, results: List[Union[Tuple[bool, Failure], Tuple[bool, Dict[str, str]]]], item: Union[ItemWithFiles, FilesPipelineTestAttrsItem, Dict[str, Union[str, List[str]]], FilesPipelineTestItem, Dict[str, List[Union[Any, str]]]], info: Optional[SpiderInfo]) -> Union[ItemWithFiles, FilesPipelineTestAttrsItem, Dict[str, Union[str, List[str], List[Dict[str, str]]]], FilesPipelineTestItem, Dict[str, List[Union[Dict[str, str], str]]], Dict[str, List[Union[Any, str]]]]:
         with suppress(KeyError):
             ItemAdapter(item)[self.files_result_field] = [x for ok, x in results if ok]
         return item
 
-    def file_path(self, request, response=None, info=None, *, item=None):
+    def file_path(self, request: Request, response: Optional[Response]=None, info: object=None, *,
+        item=None) -> str:
         media_guid = hashlib.sha1(to_bytes(request.url)).hexdigest()
         media_ext = os.path.splitext(request.url)[1]
         # Handles empty and wild extensions by trying to guess the

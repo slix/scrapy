@@ -25,6 +25,8 @@ from scrapy.utils.trackref import print_live_refs
 from scrapy.utils.engine import print_engine_status
 from scrapy.utils.reactor import listen_tcp
 from scrapy.utils.decorators import defers
+from scrapy.crawler import Crawler
+from twisted.conch.telnet import TelnetTransport
 
 
 logger = logging.getLogger(__name__)
@@ -36,7 +38,7 @@ update_telnet_vars = object()
 
 class TelnetConsole(protocol.ServerFactory):
 
-    def __init__(self, crawler):
+    def __init__(self, crawler: Crawler) -> None:
         if not crawler.settings.getbool('TELNETCONSOLE_ENABLED'):
             raise NotConfigured
         if not TWISTED_CONCH_AVAILABLE:
@@ -58,20 +60,20 @@ class TelnetConsole(protocol.ServerFactory):
         self.crawler.signals.connect(self.stop_listening, signals.engine_stopped)
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls, crawler: Crawler) -> TelnetConsole:
         return cls(crawler)
 
-    def start_listening(self):
+    def start_listening(self) -> None:
         self.port = listen_tcp(self.portrange, self.host, self)
         h = self.port.getHost()
         logger.info("Telnet console listening on %(host)s:%(port)d",
                     {'host': h.host, 'port': h.port},
                     extra={'crawler': self.crawler})
 
-    def stop_listening(self):
+    def stop_listening(self) -> None:
         self.port.stopListening()
 
-    def protocol(self):
+    def protocol(self) -> TelnetTransport:
         class Portal:
             """An implementation of IPortal"""
             @defers

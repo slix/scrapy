@@ -1,0 +1,15 @@
+WARNING: Failed decoding trace: Module 'tests.test_http_request' has no attribute 'RequestTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_request' has no attribute 'RequestTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_request' has no attribute 'RequestTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_request' has no attribute 'RequestTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_request' has no attribute 'RequestTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_request' has no attribute 'RequestTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_request' has no attribute 'RequestTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_request' has no attribute 'RequestTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_request' has no attribute 'RequestTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_request' has no attribute 'RequestTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_request' has no attribute 'RequestTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_request' has no attribute 'RequestTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_request_dict' has no attribute 'RequestSerializationTest.test_unserializable_callback3.<locals>'
+ERROR: Failed applying stub with libcst:
+Could not resolve a unique qualified name for type TestSpiderDelegation at 15:36. Candidate names were: ['tests.test_request_dict.TestSpider.Delegation', 'tests.test_request_dict.TestSpiderDelegation']

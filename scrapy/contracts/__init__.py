@@ -2,24 +2,28 @@ import re
 import sys
 from functools import wraps
 from inspect import getmembers
-from typing import Dict
+from typing import Any, Callable, List, Optional, Type, Union, Dict
 from unittest import TestCase
 
 from scrapy.http import Request
 from scrapy.utils.python import get_spec
 from scrapy.utils.spider import iterate_spider_output
+from scrapy.contracts.default import CallbackKeywordArgumentsContract, ReturnsContract, ScrapesContract, UrlContract
+from scrapy.http.request import Request
+from tests.test_contracts import CustomContractFailSpider, CustomContractSuccessSpider, CustomFailContract, CustomFormContract, CustomSuccessContract, InheritsTestSpider
+from unittest.runner import TextTestResult
 
 
 class Contract:
     """ Abstract class for contracts """
     request_cls = None
 
-    def __init__(self, method, *args):
+    def __init__(self, method: Callable, *args) -> None:
         self.testcase_pre = _create_testcase(method, f'@{self.name} pre-hook')
         self.testcase_post = _create_testcase(method, f'@{self.name} post-hook')
         self.args = args
 
-    def add_pre_hook(self, request, results):
+    def add_pre_hook(self, request: Request, results: TextTestResult) -> Request:
         if hasattr(self, 'pre_process'):
             cb = request.callback
 
@@ -42,7 +46,7 @@ class Contract:
 
         return request
 
-    def add_post_hook(self, request, results):
+    def add_post_hook(self, request: Request, results: TextTestResult) -> Request:
         if hasattr(self, 'post_process'):
             cb = request.callback
 
@@ -66,18 +70,18 @@ class Contract:
 
         return request
 
-    def adjust_request_args(self, args):
+    def adjust_request_args(self, args: Union[Dict[str, Optional[Union[Callable, str, int, Dict[str, str]]]], Dict[str, Optional[Union[Callable, str, int]]]]) -> Union[Dict[str, Optional[Union[Callable, str, int, Dict[str, str]]]], Dict[str, Optional[Union[Callable, str, int]]]]:
         return args
 
 
 class ContractsManager:
     contracts: Dict[str, Contract] = {}
 
-    def __init__(self, contracts):
+    def __init__(self, contracts: List[Union[Type[UrlContract], Type[CallbackKeywordArgumentsContract], Type[ReturnsContract], Type[ScrapesContract], Type[CustomFormContract], Type[CustomSuccessContract], Type[CustomFailContract]]]) -> None:
         for contract in contracts:
             self.contracts[contract.name] = contract
 
-    def tested_methods_from_spidercls(self, spidercls):
+    def tested_methods_from_spidercls(self, spidercls: Union[Type[CustomContractSuccessSpider], Type[CustomContractFailSpider], Type[InheritsTestSpider]]) -> List[str]:
         is_method = re.compile(r"^\s*@", re.MULTILINE).search
         methods = []
         for key, value in getmembers(spidercls):
@@ -86,7 +90,7 @@ class ContractsManager:
 
         return methods
 
-    def extract_contracts(self, method):
+    def extract_contracts(self, method: Callable) -> List[Union[ReturnsContract, UrlContract, CustomSuccessContract, CustomFailContract, CustomFormContract, CallbackKeywordArgumentsContract, ScrapesContract]]:
         contracts = []
         for line in method.__doc__.split('\n'):
             line = line.strip()
@@ -99,7 +103,7 @@ class ContractsManager:
 
         return contracts
 
-    def from_spider(self, spider, results):
+    def from_spider(self, spider: Union[CustomContractSuccessSpider, CustomContractFailSpider, InheritsTestSpider], results: TextTestResult) -> List[Optional[Union[Request, Any]]]:
         requests = []
         for method in self.tested_methods_from_spidercls(type(spider)):
             bound_method = spider.__getattribute__(method)
@@ -111,7 +115,7 @@ class ContractsManager:
 
         return requests
 
-    def from_method(self, method, results):
+    def from_method(self, method: Callable, results: TextTestResult) -> Optional[Request]:
         contracts = self.extract_contracts(method)
         if contracts:
             request_cls = Request
@@ -145,7 +149,7 @@ class ContractsManager:
                 self._clean_req(request, method, results)
                 return request
 
-    def _clean_req(self, request, method, results):
+    def _clean_req(self, request: Request, method: Callable, results: TextTestResult) -> None:
         """ stop the request from returning objects and records any errors """
 
         cb = request.callback

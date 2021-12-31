@@ -3,6 +3,7 @@
 import warnings
 import inspect
 from scrapy.exceptions import ScrapyDeprecationWarning
+from typing import Optional, Type, Union
 
 
 def attribute(obj, oldattr, newattr, version='0.12'):
@@ -15,16 +16,16 @@ def attribute(obj, oldattr, newattr, version='0.12'):
 
 
 def create_deprecated_class(
-    name,
-    new_class,
-    clsdict=None,
-    warn_category=ScrapyDeprecationWarning,
-    warn_once=True,
-    old_class_path=None,
-    new_class_path=None,
-    subclass_warn_message="{cls} inherits from deprecated class {old}, please inherit from {new}.",
-    instance_warn_message="{cls} is deprecated, instantiate {new} instead."
-):
+    name: str,
+    new_class: Union[Type[Identity], Type[SelectJmes], Type[Compose], Type[MapCompose], Type[TakeFirst], Type[JsonRequest], Type[Join]],
+    clsdict: None=None,
+    warn_category: Type[ScrapyDeprecationWarning]=ScrapyDeprecationWarning,
+    warn_once: bool=True,
+    old_class_path: None=None,
+    new_class_path: None=None,
+    subclass_warn_message: str="{cls} inherits from deprecated class {old}, please inherit from {new}.",
+    instance_warn_message: str="{cls} is deprecated, instantiate {new} instead."
+) -> Union[Type[Identity], Type[MapCompose], Type[Compose], Type[TakeFirst], Type[SelectJmes], Type[JSONRequest], Type[Join]]:
     """
     Return a "deprecated" class that causes its subclasses to issue a warning.
     Subclasses of ``new_class`` are considered subclasses of this class.
@@ -120,7 +121,7 @@ def create_deprecated_class(
     return deprecated_cls
 
 
-def _clspath(cls, forced=None):
+def _clspath(cls: Type[NewName], forced: Optional[str]=None) -> str:
     if forced is not None:
         return forced
     return f'{cls.__module__}.{cls.__name__}'
@@ -131,7 +132,7 @@ DEPRECATION_RULES = [
 ]
 
 
-def update_classpath(path):
+def update_classpath(path: Union[Type[FailProcessSpiderInputMiddleware], Type[AsyncDefPipeline], Type[NotGeneratorFailMiddleware], Type[SimplePipeline], Type[RaiseExceptionRequestMiddleware], Type[DeferredPipeline], Type[LogExceptionMiddleware], Type[GeneratorDoNothingAfterRecoveryMiddleware], Type[ProcessResponseMiddleware], Type[GeneratorFailMiddleware], Type[DropSomeItemsPipeline], Type[InjectArgumentsDownloaderMiddleware], Type[NotGeneratorRecoverMiddleware], Type[AsyncDefNotAsyncioPipeline], Type[AsyncDefAsyncioPipeline], Type[CatchExceptionDoNotOverrideRequestMiddleware], Type[NotGeneratorDoNothingAfterFailureMiddleware], str, Type[RecoveryMiddleware], Type[CatchExceptionOverrideRequestMiddleware], Type[GeneratorRecoverMiddleware], Type[AlternativeCallbacksMiddleware], Type[InjectArgumentsSpiderMiddleware], Type[GeneratorDoNothingAfterFailureMiddleware], Type[NotGeneratorDoNothingAfterRecoveryMiddleware]]) -> Union[Type[FailProcessSpiderInputMiddleware], Type[AsyncDefPipeline], Type[NotGeneratorFailMiddleware], Type[SimplePipeline], Type[RaiseExceptionRequestMiddleware], Type[DeferredPipeline], Type[LogExceptionMiddleware], Type[GeneratorDoNothingAfterRecoveryMiddleware], Type[ProcessResponseMiddleware], Type[GeneratorFailMiddleware], Type[DropSomeItemsPipeline], Type[InjectArgumentsDownloaderMiddleware], Type[NotGeneratorRecoverMiddleware], Type[AsyncDefNotAsyncioPipeline], Type[AsyncDefAsyncioPipeline], Type[CatchExceptionDoNotOverrideRequestMiddleware], Type[NotGeneratorDoNothingAfterFailureMiddleware], str, Type[RecoveryMiddleware], Type[CatchExceptionOverrideRequestMiddleware], Type[GeneratorRecoverMiddleware], Type[AlternativeCallbacksMiddleware], Type[InjectArgumentsSpiderMiddleware], Type[GeneratorDoNothingAfterFailureMiddleware], Type[NotGeneratorDoNothingAfterRecoveryMiddleware]]:
     """Update a deprecated path from an object with its new location"""
     for prefix, replacement in DEPRECATION_RULES:
         if isinstance(path, str) and path.startswith(prefix):

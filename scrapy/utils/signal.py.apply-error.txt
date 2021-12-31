@@ -1,0 +1,2 @@
+ERROR: Failed applying stub with libcst:
+Could not resolve a unique qualified name for type DeferredList at 36:5. Candidate names were: ['twisted.internet.defer.Deferred.List', 'twisted.internet.defer.DeferredList']

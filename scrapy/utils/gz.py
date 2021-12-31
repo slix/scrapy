@@ -3,6 +3,7 @@ from gzip import GzipFile
 from io import BytesIO
 
 from scrapy.utils.decorators import deprecated
+from scrapy.http.response import Response
 
 
 # - GzipFile's read() has issues returning leftover uncompressed data when
@@ -14,7 +15,7 @@ def read1(gzf, size=-1):
     return gzf.read1(size)
 
 
-def gunzip(data):
+def gunzip(data: bytes) -> bytes:
     """Gunzip the given data and return as much data as possible.
 
     This is resilient to CRC checksum errors.
@@ -41,5 +42,5 @@ def gunzip(data):
     return b''.join(output_list)
 
 
-def gzip_magic_number(response):
+def gzip_magic_number(response: Response) -> bool:
     return response.body[:3] == b'\x1f\x8b\x08'

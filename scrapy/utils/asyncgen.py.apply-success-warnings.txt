@@ -1,0 +1,4 @@
+WARNING: Failed decoding trace: Module 'builtins' has no attribute 'async_generator'
+WARNING: Failed decoding trace: Module 'builtins' has no attribute 'async_generator'
+WARNING: Failed decoding trace: Module 'builtins' has no attribute 'async_generator'
+No traces found for module scrapy.utils.asyncgen

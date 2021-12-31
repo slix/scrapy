@@ -6,6 +6,12 @@ See documentation in docs/topics/spider-middleware.rst
 import logging
 
 from scrapy.exceptions import IgnoreRequest
+from scrapy.crawler import Crawler
+from scrapy.http.response import Response
+from scrapy.settings import Settings
+from scrapy.spiders import Spider
+from tests.test_contracts import ResponseMock
+from typing import Any, List, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +19,9 @@ logger = logging.getLogger(__name__)
 class HttpError(IgnoreRequest):
     """A non-200 response was filtered"""
 
-    def __init__(self, response, *args, **kwargs):
+    def __init__(self, response: Union[ResponseMock, Response], *args,
+        **kwargs
+    ) -> None:
         self.response = response
         super().__init__(*args, **kwargs)
 
@@ -21,14 +29,14 @@ class HttpError(IgnoreRequest):
 class HttpErrorMiddleware:
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls, crawler: Crawler) -> HttpErrorMiddleware:
         return cls(crawler.settings)
 
-    def __init__(self, settings):
+    def __init__(self, settings: Settings) -> None:
         self.handle_httpstatus_all = settings.getbool('HTTPERROR_ALLOW_ALL')
         self.handle_httpstatus_list = settings.getlist('HTTPERROR_ALLOWED_CODES')
 
-    def process_spider_input(self, response, spider):
+    def process_spider_input(self, response: Response, spider: Spider) -> None:
         if 200 <= response.status < 300:  # common case
             return
         meta = response.meta
@@ -44,7 +52,7 @@ class HttpErrorMiddleware:
             return
         raise HttpError(response, 'Ignoring non-200 response')
 
-    def process_spider_exception(self, response, exception, spider):
+    def process_spider_exception(self, response: Response, exception: Exception, spider: Spider) -> Optional[List[Any]]:
         if isinstance(exception, HttpError):
             spider.crawler.stats.inc_value('httperror/response_ignored_count')
             spider.crawler.stats.inc_value(

@@ -1,0 +1,46 @@
+  from scrapy.crawler import Crawler
+  from scrapy.http.request import Request
+  from scrapy.http.response import Response
+  from scrapy.settings import Settings
+  from scrapy.spiders import Spider
+- from scrapy.statscollectors import StatsCollector
++ from scrapy.statscollectors import MemoryStatsCollector
+?                                    ++++++
+  from typing import (
+      Optional,
+      Type,
+  )
+
+
+  class HttpCacheMiddleware:
+-     def __init__(self, settings: Settings, stats: StatsCollector) -> None: ...
++     def __init__(self, settings: Settings, stats: MemoryStatsCollector) -> None: ...
+?                                                   ++++++
+      def _cache_response(
+          self,
+          spider: Spider,
+          response: Response,
+          request: Request,
+          cachedresponse: Optional[Response]
+      ) -> None: ...
+      @classmethod
+      def from_crawler(cls: Type[~HttpCacheMiddlewareTV], crawler: Crawler) -> HttpCacheMiddlewareTV: ...
+      def process_exception(
+          self,
+          request: Request,
+          exception: Exception,
+          spider: Spider
+      ) -> Optional[Response]: ...
+      def process_request(
+          self,
+          request: Request,
+          spider: Spider
+      ) -> Optional[Response]: ...
+      def process_response(
+          self,
+          request: Request,
+          response: Response,
+          spider: Spider
+      ) -> Response: ...
+      def spider_closed(self, spider: Spider) -> None: ...
+      def spider_opened(self, spider: Spider) -> None: ...

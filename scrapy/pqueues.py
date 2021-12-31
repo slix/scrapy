@@ -2,12 +2,15 @@ import hashlib
 import logging
 
 from scrapy.utils.misc import create_instance
+from scrapy.crawler import Crawler
+from scrapy.http.request import Request
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 
 logger = logging.getLogger(__name__)
 
 
-def _path_safe(text):
+def _path_safe(text: str) -> str:
     """
     Return a filesystem-safe version of a string ``text``
 
@@ -63,7 +66,7 @@ class ScrapyPriorityQueue:
         self.curprio = None
         self.init_prios(startprios)
 
-    def init_prios(self, startprios):
+    def init_prios(self, startprios: Union[Tuple[()], List[Any], List[int]]) -> None:
         if not startprios:
             return
 
@@ -80,10 +83,10 @@ class ScrapyPriorityQueue:
             self.key + '/' + str(key),
         )
 
-    def priority(self, request):
+    def priority(self, request: Request) -> int:
         return -request.priority
 
-    def push(self, request):
+    def push(self, request: Request) -> None:
         priority = self.priority(request)
         if priority not in self.queues:
             self.queues[priority] = self.qfactory(priority)
@@ -92,7 +95,7 @@ class ScrapyPriorityQueue:
         if self.curprio is None or priority < self.curprio:
             self.curprio = priority
 
-    def pop(self):
+    def pop(self) -> Optional[Request]:
         if self.curprio is None:
             return
         q = self.queues[self.curprio]
@@ -104,7 +107,7 @@ class ScrapyPriorityQueue:
             self.curprio = min(prios) if prios else None
         return m
 
-    def peek(self):
+    def peek(self) -> Optional[Request]:
         """Returns the next object to be returned by :meth:`pop`,
         but without removing it from the queue.
 
@@ -116,29 +119,29 @@ class ScrapyPriorityQueue:
         queue = self.queues[self.curprio]
         return queue.peek()
 
-    def close(self):
+    def close(self) -> List[Union[int, Any]]:
         active = []
         for p, q in self.queues.items():
             active.append(p)
             q.close()
         return active
 
-    def __len__(self):
+    def __len__(self) -> int:
         return sum(len(x) for x in self.queues.values()) if self.queues else 0
 
 
 class DownloaderInterface:
 
-    def __init__(self, crawler):
+    def __init__(self, crawler: Crawler) -> None:
         self.downloader = crawler.engine.downloader
 
-    def stats(self, possible_slots):
+    def stats(self, possible_slots: Union[Dict[Any, Any], Dict[str, ScrapyPriorityQueue]]) -> List[Union[Tuple[int, str], Any]]:
         return [(self._active_downloads(slot), slot) for slot in possible_slots]
 
-    def get_slot_key(self, request):
+    def get_slot_key(self, request: Request) -> str:
         return self.downloader._get_slot_key(request, None)
 
-    def _active_downloads(self, slot):
+    def _active_downloads(self, slot: str) -> int:
         """ Return a number of requests in a Downloader for a given slot """
         if slot not in self.downloader.slots:
             return 0
@@ -177,7 +180,7 @@ class DownloaderAwarePriorityQueue:
         for slot, startprios in (slot_startprios or {}).items():
             self.pqueues[slot] = self.pqfactory(slot, startprios)
 
-    def pqfactory(self, slot, startprios=()):
+    def pqfactory(self, slot: str, startprios: Union[Tuple[()], List[int]]=()) -> ScrapyPriorityQueue:
         return ScrapyPriorityQueue(
             self.crawler,
             self.downstream_queue_cls,
@@ -185,7 +188,7 @@ class DownloaderAwarePriorityQueue:
             startprios,
         )
 
-    def pop(self):
+    def pop(self) -> Optional[Request]:
         stats = self._downloader_interface.stats(self.pqueues)
 
         if not stats:
@@ -198,14 +201,14 @@ class DownloaderAwarePriorityQueue:
             del self.pqueues[slot]
         return request
 
-    def push(self, request):
+    def push(self, request: Request) -> None:
         slot = self._downloader_interface.get_slot_key(request)
         if slot not in self.pqueues:
             self.pqueues[slot] = self.pqfactory(slot)
         queue = self.pqueues[slot]
         queue.push(request)
 
-    def peek(self):
+    def peek(self) -> Optional[Request]:
         """Returns the next object to be returned by :meth:`pop`,
         but without removing it from the queue.
 
@@ -219,12 +222,12 @@ class DownloaderAwarePriorityQueue:
         queue = self.pqueues[slot]
         return queue.peek()
 
-    def close(self):
+    def close(self) -> Union[Dict[Any, Any], Dict[str, List[int]]]:
         active = {slot: queue.close() for slot, queue in self.pqueues.items()}
         self.pqueues.clear()
         return active
 
-    def __len__(self):
+    def __len__(self) -> int:
         return sum(len(x) for x in self.pqueues.values()) if self.pqueues else 0
 
     def __contains__(self, slot):

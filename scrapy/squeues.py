@@ -10,6 +10,10 @@ from queuelib import queue
 
 from scrapy.utils.deprecate import create_deprecated_class
 from scrapy.utils.request import request_from_dict
+from scrapy.http.request import Request
+from scrapy.selector.unified import Selector
+from tests.test_squeues import TestItem, TestLoader
+from typing import Any, Callable, Dict, List, Optional, Union
 
 
 def _with_mkdir(queue_class):
@@ -115,7 +119,7 @@ def _scrapy_non_serialization_queue(queue_class):
     return ScrapyRequestQueue
 
 
-def _pickle_serialize(obj):
+def _pickle_serialize(obj: Union[bytes, Dict[str, str], int, Selector, TestLoader, Callable, Dict[str, Optional[Union[str, Dict[Any, Any], bytes, Dict[str, str], int, List[Any]]]], str, Request, Dict[str, Optional[Union[str, Dict[Any, Any], bytes, int, List[Any]]]], TestItem]) -> bytes:
     try:
         return pickle.dumps(obj, protocol=4)
     # Both pickle.PicklingError and AttributeError can be raised by pickle.dump(s)

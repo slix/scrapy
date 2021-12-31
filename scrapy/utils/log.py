@@ -4,18 +4,28 @@ import warnings
 from logging.config import dictConfig
 
 from twisted.python import log as twisted_log
-from twisted.python.failure import Failure
+from twisted.python.failure import _TracebackFrame, Failure
 
 import scrapy
-from scrapy.exceptions import ScrapyDeprecationWarning
+from scrapy.exceptions import DropItem, ScrapyDeprecationWarning
 from scrapy.settings import Settings
 from scrapy.utils.versions import scrapy_components_versions
+from scrapy.core.downloader.handlers.http11 import TunnelError
+from scrapy.crawler import Crawler
+from scrapy.http.request import Request
+from scrapy.http.response.html import HtmlResponse
+from scrapy.http.response.text import TextResponse
+from scrapy.item import Item
+from tests.test_engine import AttrsItem, TestItem
+from twisted.internet.error import ConnectError, DNSLookupError
+from twisted.web._newclient import ResponseFailed, ResponseNeverReceived
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 
 logger = logging.getLogger(__name__)
 
 
-def failure_to_exc_info(failure):
+def failure_to_exc_info(failure: Union[Failure, str]) -> Optional[Union[Tuple[Type[DNSLookupError], DNSLookupError, None], Tuple[Type[ResponseFailed], ResponseFailed, _TracebackFrame], Tuple[Type[TunnelError], TunnelError, _TracebackFrame], Tuple[Type[ConnectError], ConnectError, _TracebackFrame], Tuple[Type[AttributeError], AttributeError, _TracebackFrame], Tuple[Type[DNSLookupError], DNSLookupError, _TracebackFrame], Tuple[Type[ResponseNeverReceived], ResponseNeverReceived, _TracebackFrame], Tuple[Type[KeyError], KeyError, _TracebackFrame], Tuple[Type[Exception], Exception, None], Tuple[Type[TypeError], TypeError, _TracebackFrame], Tuple[Type[ZeroDivisionError], ZeroDivisionError, _TracebackFrame]]]:
     """Extract exc_info from Failure instances"""
     if isinstance(failure, Failure):
         return (failure.type, failure.value, failure.getTracebackObject())
@@ -33,10 +43,10 @@ class TopLevelFormatter(logging.Filter):
     ``loggers`` list where it should act.
     """
 
-    def __init__(self, loggers=None):
+    def __init__(self, loggers: Optional[List[str]]=None) -> None:
         self.loggers = loggers or []
 
-    def filter(self, record):
+    def filter(self, record: LogRecord) -> bool:
         if any(record.name.startswith(logger + '.') for logger in self.loggers):
             record.name = record.name.split('.', 1)[0]
         return True
@@ -59,7 +69,7 @@ DEFAULT_LOGGING = {
 }
 
 
-def configure_logging(settings=None, install_root_handler=True):
+def configure_logging(settings: Optional[Settings]=None, install_root_handler: bool=True) -> None:
     """
     Initialize logging defaults for Scrapy.
 
@@ -102,7 +112,7 @@ def configure_logging(settings=None, install_root_handler=True):
         install_scrapy_root_handler(settings)
 
 
-def install_scrapy_root_handler(settings):
+def install_scrapy_root_handler(settings: Settings) -> None:
     global _scrapy_root_handler
 
     if (_scrapy_root_handler is not None
@@ -113,14 +123,14 @@ def install_scrapy_root_handler(settings):
     logging.root.addHandler(_scrapy_root_handler)
 
 
-def get_scrapy_root_handler():
+def get_scrapy_root_handler() -> Optional[StreamHandler]:
     return _scrapy_root_handler
 
 
 _scrapy_root_handler = None
 
 
-def _get_handler(settings):
+def _get_handler(settings: Settings) -> StreamHandler:
     """ Return a log handler object according to settings """
     filename = settings.get('LOG_FILE')
     if filename:
@@ -143,7 +153,7 @@ def _get_handler(settings):
     return handler
 
 
-def log_scrapy_info(settings):
+def log_scrapy_info(settings: Settings) -> None:
     logger.info("Scrapy %(version)s started (bot: %(bot)s)",
                 {'version': scrapy.__version__, 'bot': settings['BOT_NAME']})
     versions = [
@@ -169,12 +179,12 @@ class StreamLogger:
     Taken from:
         https://www.electricmonk.nl/log/2011/08/14/redirect-stdout-and-stderr-to-a-logger-in-python/
     """
-    def __init__(self, logger, log_level=logging.INFO):
+    def __init__(self, logger: Logger, log_level: int=logging.INFO) -> None:
         self.logger = logger
         self.log_level = log_level
         self.linebuf = ''
 
-    def write(self, buf):
+    def write(self, buf: str) -> None:
         for line in buf.rstrip().splitlines():
             self.logger.log(self.log_level, line.rstrip())
 
@@ -186,16 +196,16 @@ class StreamLogger:
 class LogCounterHandler(logging.Handler):
     """Record log levels count into a crawler stats"""
 
-    def __init__(self, crawler, *args, **kwargs):
+    def __init__(self, crawler: Crawler, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.crawler = crawler
 
-    def emit(self, record):
+    def emit(self, record: LogRecord) -> None:
         sname = f'log_count/{record.levelname}'
         self.crawler.stats.inc_value(sname)
 
 
-def logformatter_adapter(logkws):
+def logformatter_adapter(logkws: Union[Dict[str, Union[int, str, Dict[str, Union[HtmlResponse, Item]]]], Dict[str, Union[int, str, Dict[str, Union[HtmlResponse, AttrsItem]]]], Dict[str, Union[int, str, Dict[str, Union[HtmlResponse, Dict[Any, Any]]]]], Dict[str, Union[int, str, Dict[str, Union[DropItem, Item]]]], Dict[str, Union[int, str, Dict[str, Union[HtmlResponse, Dict[str, str]]]]], Dict[str, Union[int, str, Dict[str, Optional[HtmlResponse]]]], Dict[str, Union[int, str, Dict[str, Request]]], Dict[str, Union[int, str, Dict[str, Union[DropItem, Dict[Any, Any]]]]], Dict[str, Union[int, str, Dict[str, Optional[Request]]]], Dict[str, Union[int, str, Dict[str, Optional[Union[int, Request, str]]]]], Dict[str, Union[int, str, Dict[str, Union[TextResponse, Dict[str, List[str]]]]]], Dict[str, Union[int, str, Dict[str, Union[TextResponse, Dict[str, str]]]]], Dict[str, Union[int, str, Dict[str, Union[TextResponse, Dict[str, int]]]]], Dict[str, Union[int, str, Dict[str, Union[Request, str]]]], Dict[str, Union[int, str, Dict[str, Union[HtmlResponse, TestItem]]]], Dict[str, Union[int, str, Dict[str, TestItem]]], Dict[str, Union[int, str, Dict[str, Union[HtmlResponse, Dict[str, List[str]]]]]], Dict[str, Union[int, str, Dict[str, Union[int, Request, str]]]], Dict[str, Union[int, str, Dict[str, Union[HtmlResponse, Dict[str, List[Union[Dict[str, str], str]]]]]]], Dict[str, Union[int, str, Dict[str, Union[HtmlResponse, Dict[str, List[Union[Any, str]]]]]]]]) -> Union[Tuple[int, str, Dict[str, Union[TextResponse, Dict[str, List[str]]]]], Tuple[int, str, Dict[str, Union[TextResponse, Dict[str, str]]]], Tuple[int, str, Dict[str, Optional[Union[int, Request, str]]]], Tuple[int, str, Dict[str, Union[HtmlResponse, Dict[str, List[Union[Any, str]]]]]], Tuple[int, str, Dict[str, Union[int, Request, str]]], Tuple[int, str, Dict[str, TestItem]], Tuple[int, str, Dict[str, Union[HtmlResponse, Dict[Any, Any]]]], Tuple[int, str, Dict[str, Union[HtmlResponse, Dict[str, str]]]], Tuple[int, str, Dict[str, Union[HtmlResponse, Item]]], Tuple[int, str, Dict[str, Union[HtmlResponse, Dict[str, List[Union[Dict[str, str], str]]]]]], Tuple[int, str, Dict[str, Union[HtmlResponse, AttrsItem]]], Tuple[int, str, Dict[str, Optional[HtmlResponse]]], Tuple[int, str, Dict[str, Union[DropItem, Dict[Any, Any]]]], Tuple[int, str, Dict[str, Union[DropItem, Item]]], Tuple[int, str, Dict[str, Union[Request, str]]], Tuple[int, str, Dict[str, Union[HtmlResponse, TestItem]]], Tuple[int, str, Dict[str, Union[HtmlResponse, Dict[str, List[str]]]]], Tuple[int, str, Dict[str, Union[TextResponse, Dict[str, int]]]], Tuple[int, str, Dict[str, Request]], Tuple[int, str, Dict[str, Optional[Request]]]]:
     """
     Helper that takes the dictionary output from the methods in LogFormatter
     and adapts it into a tuple of positional arguments for logger.log calls,

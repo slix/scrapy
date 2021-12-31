@@ -1,0 +1,3 @@
+WARNING: Failed decoding trace: Module 'tests.test_contracts' has no attribute 'ContractsManagerTest.test_same_url.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_contracts' has no attribute 'ContractsManagerTest.test_same_url.<locals>'
+WARNING: Failed decoding trace: Module 'scrapy.contracts' has no attribute '_create_testcase.<locals>'

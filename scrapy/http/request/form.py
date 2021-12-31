@@ -5,7 +5,7 @@ This module implements the FormRequest class which is a more convenient class
 See documentation in docs/topics/request-response.rst
 """
 
-from typing import Iterable, List, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, Iterable, List, Optional, Tuple, Type, TypeVar, Union
 from urllib.parse import urljoin, urlencode, urlsplit, urlunsplit
 
 from lxml.html import FormElement, HtmlElement, HTMLParser, SelectElement
@@ -53,7 +53,7 @@ class FormRequest(Request):
         dont_click: bool = False,
         formxpath: Optional[str] = None,
         formcss: Optional[str] = None,
-        **kwargs,
+        **kwargs
     ) -> FormRequestTypeVar:
         kwargs.setdefault('encoding', response.encoding)
 
@@ -175,7 +175,7 @@ def _get_inputs(
     return values
 
 
-def _value(ele: HtmlElement):
+def _value(ele: HtmlElement) -> Union[Tuple[None, str], Tuple[str, str], Tuple[str, List[Any]], Tuple[None, None], Tuple[str, List[str]], Tuple[str, None]]:
     n = ele.name
     v = ele.value
     if ele.tag == 'select':
@@ -183,7 +183,7 @@ def _value(ele: HtmlElement):
     return n, v
 
 
-def _select_value(ele: SelectElement, n: str, v: str):
+def _select_value(ele: SelectElement, n: str, v: str) -> Union[Tuple[None, str], Tuple[str, str], Tuple[str, List[Any]], Tuple[None, None], Tuple[str, List[str]]]:
     multiple = ele.multiple
     if v is None and not multiple:
         # Match browser behaviour on simple select tag without options selected

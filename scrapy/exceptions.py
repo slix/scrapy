@@ -36,7 +36,7 @@ class DontCloseSpider(Exception):
 class CloseSpider(Exception):
     """Raise this from callbacks to request the spider to be closed"""
 
-    def __init__(self, reason='cancelled'):
+    def __init__(self, reason: str='cancelled') -> None:
         super().__init__()
         self.reason = reason
 
@@ -48,7 +48,7 @@ class StopDownload(Exception):
     should be handled by the request errback. Note that 'fail' is a keyword-only argument.
     """
 
-    def __init__(self, *, fail=True):
+    def __init__(self, *, fail=True) -> None:
         super().__init__()
         self.fail = fail
 
@@ -72,7 +72,7 @@ class NotSupported(Exception):
 class UsageError(Exception):
     """To indicate a command-line usage error"""
 
-    def __init__(self, *a, **kw):
+    def __init__(self, *a, **kw) -> None:
         self.print_help = kw.pop('print_help', True)
         super().__init__(*a, **kw)
 

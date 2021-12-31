@@ -5,7 +5,7 @@ import re
 import string
 
 
-def render_templatefile(path, **kwargs):
+def render_templatefile(path: str, **kwargs) -> None:
     with open(path, 'rb') as fp:
         raw = fp.read().decode('utf8')
 
@@ -23,7 +23,7 @@ def render_templatefile(path, **kwargs):
 CAMELCASE_INVALID_CHARS = re.compile(r'[^a-zA-Z\d]')
 
 
-def string_camelcase(string):
+def string_camelcase(string: str) -> str:
     """ Convert a word  to its CamelCase version and remove invalid chars
 
     >>> string_camelcase('lost-pound')

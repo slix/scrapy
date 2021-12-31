@@ -1,0 +1,82 @@
+  from ipaddress import IPv4Address
+  from scrapy.http.headers import Headers
+  from scrapy.http.request import Request
+  from scrapy.link import Link
+  from twisted.internet._sslverify import Certificate
+  from typing import (
+      Any,
+      Dict,
+-     Generator,
+?     ^^^
++     Iterator,
+?     ^^
+      List,
+      Optional,
+      Union,
+  )
+
+
+  class Response:
+      def __init__(
+          self,
+          url: Union[bytes, str],
+          status: Union[int, str] = ...,
+          headers: Optional[Union[Dict[str, str], Dict[Any, Any], Dict[str, filter], Headers, Dict[str, List[str]], Dict[str, Union[bytes, int]], Dict[str, Union[str, int]], Dict[str, bytes]]] = ...,
+          body: Optional[Union[bytes, str]] = ...,
+          flags: Optional[Union[List[Any], List[str]]] = ...,
+          request: Optional[Request] = ...,
+          certificate: Optional[Certificate] = ...,
+          ip_address: Optional[IPv4Address] = ...,
+          protocol: Optional[str] = ...
+      ) -> None: ...
+      def __str__(self) -> str: ...
+      def _get_body(self) -> bytes: ...
+      def _get_url(self) -> str: ...
+      def _set_body(self, body: Optional[bytes]) -> None: ...
+      def _set_url(self, url: Union[bytes, str]) -> None: ...
+      @property
+      def cb_kwargs(self) -> Dict[str, str]: ...
+      def copy(self) -> Response: ...
+      def css(self, *a, **kw): ...
+      def follow(
+          self,
+          url: Optional[Union[Link, str]],
+          callback: None = ...,
+          method: str = ...,
+          headers: None = ...,
+          body: None = ...,
+          cookies: None = ...,
+          meta: None = ...,
+          encoding: str = ...,
+          priority: int = ...,
+          dont_filter: bool = ...,
+          errback: None = ...,
+          cb_kwargs: None = ...,
+          flags: Optional[List[str]] = ...
+      ) -> Request: ...
+      def follow_all(
+          self,
+          urls: Optional[Union[List[str], int, List[None], List[Any]]],
+          callback: None = ...,
+          method: str = ...,
+          headers: None = ...,
+          body: None = ...,
+          cookies: None = ...,
+          meta: None = ...,
+          encoding: Optional[str] = ...,
+          priority: int = ...,
+          dont_filter: bool = ...,
+          errback: None = ...,
+          cb_kwargs: None = ...,
+          flags: Optional[List[str]] = ...
+-     ) -> Generator[Request, None, None]: ...
++     ) -> Iterator[Any]: ...
+      @property
+      def meta(
+          self
+      ) -> Union[Dict[str, Union[float, str, int]], Dict[str, int], Dict[str, Union[float, str, int, List[str], List[int]]], Dict[str, str], Dict[Any, Any], Dict[str, Union[Request, float, str]], Dict[str, List[int]], Dict[str, Union[float, str]], Dict[str, Union[bool, float, str]], Dict[str, float], Dict[str, bool], Dict[str, Union[Request, float, str, int]]]: ...
+      def replace(self, *args, **kwargs) -> Response: ...
+      @property
+      def text(self): ...
+      def urljoin(self, url: str) -> str: ...
+      def xpath(self, *a, **kw): ...

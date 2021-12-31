@@ -2,6 +2,9 @@ import sys
 import os
 
 from twisted.internet import defer, protocol
+from twisted.internet.defer import Deferred
+from twisted.python.failure import Failure
+from typing import Any, List, Tuple, Union
 
 
 class ProcessTest:
@@ -10,7 +13,7 @@ class ProcessTest:
     prefix = [sys.executable, '-m', 'scrapy.cmdline']
     cwd = os.getcwd()  # trial chdirs to temp dir
 
-    def execute(self, args, check_code=True, settings=None):
+    def execute(self, args: List[Union[Any, str]], check_code: bool=True, settings: None=None) -> Deferred:
         from twisted.internet import reactor
         env = os.environ.copy()
         if settings is not None:
@@ -21,7 +24,7 @@ class ProcessTest:
         reactor.spawnProcess(pp, cmd[0], cmd, env=env, path=self.cwd)
         return pp.deferred
 
-    def _process_finished(self, pp, cmd, check_code):
+    def _process_finished(self, pp: TestProcessProtocol, cmd: List[str], check_code: bool) -> Tuple[int, bytes, bytes]:
         if pp.exitcode and check_code:
             msg = f"process {cmd} exit with code {pp.exitcode}"
             msg += f"\n>>> stdout <<<\n{pp.out}"
@@ -33,18 +36,18 @@ class ProcessTest:
 
 class TestProcessProtocol(protocol.ProcessProtocol):
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.deferred = defer.Deferred()
         self.out = b''
         self.err = b''
         self.exitcode = None
 
-    def outReceived(self, data):
+    def outReceived(self, data: bytes) -> None:
         self.out += data
 
-    def errReceived(self, data):
+    def errReceived(self, data: bytes) -> None:
         self.err += data
 
-    def processEnded(self, status):
+    def processEnded(self, status: Failure) -> None:
         self.exitcode = status.value.exitCode
         self.deferred.callback(self)

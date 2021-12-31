@@ -1,0 +1,37 @@
+  from scrapy.http.response import Response
++ from scrapy.http.response.html import HtmlResponse
++ from scrapy.http.response.text import TextResponse
+  from typing import (
+      Any,
+      Callable,
++     List,
+-     Iterable,
+-     Optional,
+      Tuple,
+      Union,
+  )
+
+
+- def get_base_url(response: scrapy.http.response.text.TextResponse) -> str: ...
+?                            --------------------------
++ def get_base_url(response: TextResponse) -> str: ...
+
+
+  def get_meta_refresh(
+-     response: scrapy.http.response.text.TextResponse,
+-     ignore_tags: Optional[Iterable[str]] = ...
++     response: HtmlResponse,
++     ignore_tags: Union[List[str], List[Any], Tuple[str, str]] = ...
+  ) -> Union[Tuple[None, None], Tuple[float, str]]: ...
+
+
++ def open_in_browser(response: HtmlResponse, _openfunc: Callable = ...) -> bool: ...
+- def open_in_browser(
+-     response: Union['scrapy.http.response.html.HtmlResponse', 'scrapy.http.response.text.TextResponse'],
+-     _openfunc: Callable[[str], Any] = ...
+- ) -> Any: ...
+
+
+- def response_status_message(status: Union[bytes, float, int, str]) -> str: ...
+?                                     --------------------   ------
++ def response_status_message(status: int) -> str: ...

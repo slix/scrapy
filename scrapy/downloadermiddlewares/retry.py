@@ -25,11 +25,16 @@ from twisted.internet.error import (
 from twisted.web.client import ResponseFailed
 
 from scrapy.core.downloader.handlers.http11 import TunnelError
-from scrapy.exceptions import NotConfigured
+from scrapy.exceptions import StopDownload, _InvalidOutput, NotConfigured
 from scrapy.http.request import Request
 from scrapy.spiders import Spider
 from scrapy.utils.python import global_object_name
 from scrapy.utils.response import response_status_message
+from scrapy.crawler import Crawler
+from scrapy.http.response import Response
+from scrapy.settings import Settings
+from twisted.internet.defer import CancelledError, TimeoutError
+from twisted.web._newclient import ResponseFailed
 
 
 retry_logger = getLogger(__name__)
@@ -44,7 +49,7 @@ def get_retry_request(
     priority_adjust: Optional[int] = None,
     logger: Logger = retry_logger,
     stats_base_key: str = 'retry',
-):
+) -> Optional[Request]:
     """
     Returns a new :class:`~scrapy.Request` object to retry the specified
     request, or ``None`` if retries of the specified request have been
@@ -133,7 +138,7 @@ class RetryMiddleware:
                            ConnectionLost, TCPTimedOutError, ResponseFailed,
                            IOError, TunnelError)
 
-    def __init__(self, settings):
+    def __init__(self, settings: Settings) -> None:
         if not settings.getbool('RETRY_ENABLED'):
             raise NotConfigured
         self.max_retry_times = settings.getint('RETRY_TIMES')
@@ -141,10 +146,10 @@ class RetryMiddleware:
         self.priority_adjust = settings.getint('RETRY_PRIORITY_ADJUST')
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls, crawler: Crawler) -> RetryMiddleware:
         return cls(crawler.settings)
 
-    def process_response(self, request, response, spider):
+    def process_response(self, request: Request, response: Response, spider: Spider) -> Union[Request, Response]:
         if request.meta.get('dont_retry', False):
             return response
         if response.status in self.retry_http_codes:
@@ -152,14 +157,14 @@ class RetryMiddleware:
             return self._retry(request, reason, spider) or response
         return response
 
-    def process_exception(self, request, exception, spider):
+    def process_exception(self, request: Request, exception: Union[ZeroDivisionError, ConnectionRefusedError, TunnelError, ConnectionLost, StopDownload, _InvalidOutput, ConnectError, TimeoutError, DNSLookupError, TimeoutError, CancelledError, ResponseFailed, ConnectionDone], spider: Spider) -> Optional[Request]:
         if (
             isinstance(exception, self.EXCEPTIONS_TO_RETRY)
             and not request.meta.get('dont_retry', False)
         ):
             return self._retry(request, exception, spider)
 
-    def _retry(self, request, reason, spider):
+    def _retry(self, request: Request, reason: Union[ConnectionRefusedError, ResponseFailed, TunnelError, ConnectionLost, ConnectError, str, TimeoutError, TimeoutError, DNSLookupError, ConnectionDone], spider: Spider) -> Optional[Request]:
         max_retry_times = request.meta.get('max_retry_times', self.max_retry_times)
         priority_adjust = request.meta.get('priority_adjust', self.priority_adjust)
         return get_retry_request(

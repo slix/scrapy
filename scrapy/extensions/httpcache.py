@@ -15,6 +15,12 @@ from scrapy.utils.httpobj import urlparse_cached
 from scrapy.utils.project import data_path
 from scrapy.utils.python import to_bytes, to_unicode
 from scrapy.utils.request import request_fingerprint
+from scrapy.http.request import Request
+from scrapy.http.response import Response
+from scrapy.http.response.html import HtmlResponse
+from scrapy.settings import Settings
+from scrapy.spiders import Spider
+from typing import Any, Dict, List, Optional, Union
 
 
 logger = logging.getLogger(__name__)
@@ -22,17 +28,17 @@ logger = logging.getLogger(__name__)
 
 class DummyPolicy:
 
-    def __init__(self, settings):
+    def __init__(self, settings: Settings) -> None:
         self.ignore_schemes = settings.getlist('HTTPCACHE_IGNORE_SCHEMES')
         self.ignore_http_codes = [int(x) for x in settings.getlist('HTTPCACHE_IGNORE_HTTP_CODES')]
 
-    def should_cache_request(self, request):
+    def should_cache_request(self, request: Request) -> bool:
         return urlparse_cached(request).scheme not in self.ignore_schemes
 
-    def should_cache_response(self, response, request):
+    def should_cache_response(self, response: Response, request: Request) -> bool:
         return response.status not in self.ignore_http_codes
 
-    def is_cached_response_fresh(self, cachedresponse, request):
+    def is_cached_response_fresh(self, cachedresponse: Response, request: Request) -> bool:
         return True
 
     def is_cached_response_valid(self, cachedresponse, response, request):
@@ -43,7 +49,7 @@ class RFC2616Policy:
 
     MAXAGE = 3600 * 24 * 365  # one year
 
-    def __init__(self, settings):
+    def __init__(self, settings: Settings) -> None:
         self.always_store = settings.getbool('HTTPCACHE_ALWAYS_STORE')
         self.ignore_schemes = settings.getlist('HTTPCACHE_IGNORE_SCHEMES')
         self._cc_parsed = WeakKeyDictionary()
@@ -51,7 +57,7 @@ class RFC2616Policy:
             to_bytes(cc) for cc in settings.getlist('HTTPCACHE_IGNORE_RESPONSE_CACHE_CONTROLS')
         ]
 
-    def _parse_cachecontrol(self, r):
+    def _parse_cachecontrol(self, r: Union[Request, Response]) -> Union[Dict[bytes, None], Dict[Any, Any], Dict[bytes, Optional[bytes]], Dict[bytes, bytes]]:
         if r not in self._cc_parsed:
             cch = r.headers.get(b'Cache-Control', b'')
             parsed = parse_cachecontrol(cch)
@@ -61,7 +67,7 @@ class RFC2616Policy:
             self._cc_parsed[r] = parsed
         return self._cc_parsed[r]
 
-    def should_cache_request(self, request):
+    def should_cache_request(self, request: Request) -> bool:
         if urlparse_cached(request).scheme in self.ignore_schemes:
             return False
         cc = self._parse_cachecontrol(request)
@@ -71,7 +77,7 @@ class RFC2616Policy:
         # Any other is eligible for caching
         return True
 
-    def should_cache_response(self, response, request):
+    def should_cache_response(self, response: Response, request: Request) -> bool:
         # What is cacheable - https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.1
         # Response cacheability - https://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.4
         # Status code 206 is not included because cache can not deal with partial contents
@@ -100,7 +106,7 @@ class RFC2616Policy:
         else:
             return False
 
-    def is_cached_response_fresh(self, cachedresponse, request):
+    def is_cached_response_fresh(self, cachedresponse: Response, request: Request) -> bool:
         cc = self._parse_cachecontrol(cachedresponse)
         ccreq = self._parse_cachecontrol(request)
         if b'no-cache' in cc or b'no-cache' in ccreq:
@@ -139,7 +145,7 @@ class RFC2616Policy:
         self._set_conditional_validators(request, cachedresponse)
         return False
 
-    def is_cached_response_valid(self, cachedresponse, response, request):
+    def is_cached_response_valid(self, cachedresponse: Response, response: Response, request: Request) -> bool:
         # Use the cached response if the new response is a server error,
         # as long as the old response didn't specify must-revalidate.
         if response.status >= 500:
@@ -150,20 +156,20 @@ class RFC2616Policy:
         # Use the cached response if the server says it hasn't changed.
         return response.status == 304
 
-    def _set_conditional_validators(self, request, cachedresponse):
+    def _set_conditional_validators(self, request: Request, cachedresponse: Response) -> None:
         if b'Last-Modified' in cachedresponse.headers:
             request.headers[b'If-Modified-Since'] = cachedresponse.headers[b'Last-Modified']
 
         if b'ETag' in cachedresponse.headers:
             request.headers[b'If-None-Match'] = cachedresponse.headers[b'ETag']
 
-    def _get_max_age(self, cc):
+    def _get_max_age(self, cc: Union[Dict[bytes, None], Dict[Any, Any], Dict[bytes, Optional[bytes]], Dict[bytes, bytes]]) -> Optional[int]:
         try:
             return max(0, int(cc[b'max-age']))
         except (KeyError, ValueError):
             return None
 
-    def _compute_freshness_lifetime(self, response, request, now):
+    def _compute_freshness_lifetime(self, response: Response, request: Request, now: float) -> Union[int, float]:
         # Reference nsHttpResponseHead::ComputeFreshnessLifetime
         # https://dxr.mozilla.org/mozilla-central/source/netwerk/protocol/http/nsHttpResponseHead.cpp#706
         cc = self._parse_cachecontrol(response)
@@ -194,7 +200,7 @@ class RFC2616Policy:
         # Insufficient information to compute fresshness lifetime
         return 0
 
-    def _compute_current_age(self, response, request, now):
+    def _compute_current_age(self, response: Response, request: Request, now: float) -> Union[int, float]:
         # Reference nsHttpResponseHead::ComputeCurrentAge
         # https://dxr.mozilla.org/mozilla-central/source/netwerk/protocol/http/nsHttpResponseHead.cpp#658
         currentage = 0
@@ -216,22 +222,22 @@ class RFC2616Policy:
 
 class DbmCacheStorage:
 
-    def __init__(self, settings):
+    def __init__(self, settings: Settings) -> None:
         self.cachedir = data_path(settings['HTTPCACHE_DIR'], createdir=True)
         self.expiration_secs = settings.getint('HTTPCACHE_EXPIRATION_SECS')
         self.dbmodule = import_module(settings['HTTPCACHE_DBM_MODULE'])
         self.db = None
 
-    def open_spider(self, spider):
+    def open_spider(self, spider: Spider) -> None:
         dbpath = os.path.join(self.cachedir, f'{spider.name}.db')
         self.db = self.dbmodule.open(dbpath, 'c')
 
         logger.debug("Using DBM cache storage in %(cachepath)s", {'cachepath': dbpath}, extra={'spider': spider})
 
-    def close_spider(self, spider):
+    def close_spider(self, spider: Spider) -> None:
         self.db.close()
 
-    def retrieve_response(self, spider, request):
+    def retrieve_response(self, spider: Spider, request: Request) -> Optional[Response]:
         data = self._read_data(spider, request)
         if data is None:
             return  # not cached
@@ -243,7 +249,7 @@ class DbmCacheStorage:
         response = respcls(url=url, headers=headers, status=status, body=body)
         return response
 
-    def store_response(self, spider, request, response):
+    def store_response(self, spider: Spider, request: Request, response: Response) -> None:
         key = self._request_key(request)
         data = {
             'status': response.status,
@@ -254,7 +260,7 @@ class DbmCacheStorage:
         self.db[f'{key}_data'] = pickle.dumps(data, protocol=4)
         self.db[f'{key}_time'] = str(time())
 
-    def _read_data(self, spider, request):
+    def _read_data(self, spider: Spider, request: Request) -> Optional[Dict[str, Union[int, str, Dict[bytes, List[bytes]], bytes]]]:
         key = self._request_key(request)
         db = self.db
         tkey = f'{key}_time'
@@ -267,26 +273,26 @@ class DbmCacheStorage:
 
         return pickle.loads(db[f'{key}_data'])
 
-    def _request_key(self, request):
+    def _request_key(self, request: Request) -> str:
         return request_fingerprint(request)
 
 
 class FilesystemCacheStorage:
 
-    def __init__(self, settings):
+    def __init__(self, settings: Settings) -> None:
         self.cachedir = data_path(settings['HTTPCACHE_DIR'])
         self.expiration_secs = settings.getint('HTTPCACHE_EXPIRATION_SECS')
         self.use_gzip = settings.getbool('HTTPCACHE_GZIP')
         self._open = gzip.open if self.use_gzip else open
 
-    def open_spider(self, spider):
+    def open_spider(self, spider: Spider) -> None:
         logger.debug("Using filesystem cache storage in %(cachedir)s", {'cachedir': self.cachedir},
                      extra={'spider': spider})
 
-    def close_spider(self, spider):
+    def close_spider(self, spider: Spider) -> None:
         pass
 
-    def retrieve_response(self, spider, request):
+    def retrieve_response(self, spider: Spider, request: Request) -> Optional[HtmlResponse]:
         """Return response if present in cache, or None otherwise."""
         metadata = self._read_meta(spider, request)
         if metadata is None:
@@ -303,7 +309,7 @@ class FilesystemCacheStorage:
         response = respcls(url=url, headers=headers, status=status, body=body)
         return response
 
-    def store_response(self, spider, request, response):
+    def store_response(self, spider: Spider, request: Request, response: Response) -> None:
         """Store the given response in the cache."""
         rpath = self._get_request_path(spider, request)
         if not os.path.exists(rpath):
@@ -328,11 +334,11 @@ class FilesystemCacheStorage:
         with self._open(os.path.join(rpath, 'request_body'), 'wb') as f:
             f.write(request.body)
 
-    def _get_request_path(self, spider, request):
+    def _get_request_path(self, spider: Spider, request: Request) -> str:
         key = request_fingerprint(request)
         return os.path.join(self.cachedir, spider.name, key[0:2], key)
 
-    def _read_meta(self, spider, request):
+    def _read_meta(self, spider: Spider, request: Request) -> None:
         rpath = self._get_request_path(spider, request)
         metapath = os.path.join(rpath, 'pickled_meta')
         if not os.path.exists(metapath):
@@ -344,7 +350,7 @@ class FilesystemCacheStorage:
             return pickle.load(f)
 
 
-def parse_cachecontrol(header):
+def parse_cachecontrol(header: bytes) -> Union[Dict[bytes, None], Dict[bytes, bytes], Dict[bytes, Optional[bytes]], Dict[Any, Any]]:
     """Parse Cache-Control header
 
     https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
@@ -364,7 +370,7 @@ def parse_cachecontrol(header):
     return directives
 
 
-def rfc1123_to_epoch(date_str):
+def rfc1123_to_epoch(date_str: Optional[bytes]) -> Optional[int]:
     try:
         date_str = to_unicode(date_str, encoding='ascii')
         return mktime_tz(parsedate_tz(date_str))

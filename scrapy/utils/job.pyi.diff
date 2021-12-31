@@ -1,0 +1,9 @@
+- from scrapy.settings import BaseSettings
+?                             ----
++ from scrapy.settings import Settings
+  from typing import Optional
+
+
+- def job_dir(settings: BaseSettings) -> Optional[str]: ...
+?                       ----
++ def job_dir(settings: Settings) -> Optional[str]: ...

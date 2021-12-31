@@ -1,0 +1,207 @@
+  from scrapy.crawler import Crawler
+  from scrapy.http.request import Request
+  from scrapy.http.response import Response
++ from scrapy.http.response.html import HtmlResponse
++ from scrapy.http.response.text import TextResponse
+- from scrapy.spiders import Spider
+?             -- ^ ^^        ^^^^ ^
++ from scrapy.item import Item
+?              ^ ^        ^^ ^
++ from scrapy.utils.python import MutableChain
++ from tests.spiders import (
++     AsyncDefAsyncioGenComplexSpider,
++     AsyncDefAsyncioGenLoopSpider,
++     AsyncDefAsyncioGenSpider,
++     AsyncDefAsyncioReqsReturnSpider,
++     AsyncDefAsyncioReturnSingleElementSpider,
++     AsyncDefAsyncioReturnSpider,
++     BytesReceivedCallbackSpider,
++     CrawlSpiderWithParseMethod,
++     DelaySpider,
++     DuplicateStartRequestsSpider,
++     ErrorSpider,
++     FollowAllSpider,
++     HeadersReceivedCallbackSpider,
++     ItemSpider,
++     SimpleSpider,
++     SingleRequestSpider,
++ )
++ from tests.test_crawler import NoRequestsSpider
++ from tests.test_engine import (
++     AttrsItem,
++     TestSpider,
++ )
++ from tests.test_pipeline_crawl import MediaDownloadSpider
++ from tests.test_pipelines import ItemSpider
++ from tests.test_request_cb_kwargs import KeywordArgumentsSpider
++ from tests.test_request_left import SignalCatcherSpider
++ from tests.test_scheduler import StartUrlsSpider
++ from tests.test_scheduler_base import TestSpider
++ from tests.test_signals import ItemSpider
++ from tests.test_spidermiddleware_httperror import _HttpErrorSpider
++ from tests.test_spidermiddleware_output_chain import (
++     GeneratorCallbackSpider,
++     GeneratorOutputChainSpider,
++     NotGeneratorCallbackSpider,
++     NotGeneratorOutputChainSpider,
++     ProcessSpiderInputSpiderWithErrback,
++     ProcessSpiderInputSpiderWithoutErrback,
++     RecoverySpider,
++ )
+  from twisted.internet.defer import (
+      Deferred,
+      DeferredList,
+  )
+  from twisted.python.failure import Failure
+  from typing import (
+      Any,
+-     Iterable,
++     Dict,
+      Iterator,
++     List,
+      Optional,
+      Tuple,
+      Union,
+  )
+
+
+  class Scraper:
+      def __init__(self, crawler: Crawler) -> None: ...
+-     def _check_if_closing(self, spider: Spider) -> None: ...
++     def _check_if_closing(
++         self,
++         spider: Union[TestSpider, ItemSpider, TestSpider, RecoverySpider, ItemSpider, NotGeneratorCallbackSpider, CrawlSpiderWithParseMethod, SingleRequestSpider, SimpleSpider, HeadersReceivedCallbackSpider, GeneratorOutputChainSpider, FollowAllSpider, KeywordArgumentsSpider, _HttpErrorSpider, SignalCatcherSpider, NoRequestsSpider, NotGeneratorOutputChainSpider, StartUrlsSpider, GeneratorCallbackSpider, ProcessSpiderInputSpiderWithoutErrback, DuplicateStartRequestsSpider, BytesReceivedCallbackSpider, DelaySpider]
++     ) -> None: ...
+      def _itemproc_finished(
+          self,
+-         output: Any,
+-         item: Any,
++         output: Optional[Union[Dict[str, int], Dict[Any, Any], Dict[str, str], Dict[str, List[Union[Any, str]]], Dict[str, List[Union[Dict[str, str], str]]], Dict[str, List[str]], AttrsItem, Failure, Item]],
++         item: Union[Dict[str, int], Dict[Any, Any], Dict[str, str], Dict[str, List[Union[Any, str]]], Dict[str, List[Union[Dict[str, str], str]]], Dict[str, List[str]], AttrsItem, Item],
+-         response: Response,
++         response: TextResponse,
+?                   ++++
+-         spider: Spider
+-     ) -> None: ...
++         spider: Union[TestSpider, MediaDownloadSpider, ItemSpider, AsyncDefAsyncioGenComplexSpider, TestSpider, AsyncDefAsyncioGenSpider, ItemSpider, AsyncDefAsyncioReturnSingleElementSpider, ProcessSpiderInputSpiderWithErrback, GeneratorOutputChainSpider, ItemSpider, AsyncDefAsyncioGenLoopSpider, GeneratorCallbackSpider, AsyncDefAsyncioReturnSpider, NotGeneratorOutputChainSpider, RecoverySpider]
++     ) -> DeferredList: ...
+      def _log_download_errors(
+          self,
+          spider_failure: Failure,
+          download_failure: Failure,
+          request: Request,
+-         spider: Spider
+-     ) -> Optional[Failure]: ...
++         spider: Union[SimpleSpider, SignalCatcherSpider]
++     ) -> None: ...
+      def _process_spidermw_output(
+          self,
+-         output: Any,
++         output: Union[Request, Dict[str, int], Dict[Any, Any], Dict[str, List[Union[Any, str]]], Dict[str, str], Dict[str, List[str]], AttrsItem, Item],
+          request: Request,
+-         response: Response,
++         response: TextResponse,
+?                   ++++
+-         spider: Spider
++         spider: Union[TestSpider, MediaDownloadSpider, ItemSpider, AsyncDefAsyncioGenComplexSpider, TestSpider, AsyncDefAsyncioGenSpider, RecoverySpider, ItemSpider, AsyncDefAsyncioReturnSingleElementSpider, CrawlSpiderWithParseMethod, ProcessSpiderInputSpiderWithErrback, SingleRequestSpider, GeneratorOutputChainSpider, FollowAllSpider, KeywordArgumentsSpider, AsyncDefAsyncioGenLoopSpider, AsyncDefAsyncioReqsReturnSpider, GeneratorCallbackSpider, AsyncDefAsyncioReturnSpider, NotGeneratorOutputChainSpider]
+      ) -> Optional[Deferred]: ...
+      def _scrape(
+          self,
+-         result: Union[Response, Failure],
+?                               ---------
++         result: Union[Failure, Response],
+?                       +++++++++
+          request: Request,
+-         spider: Spider
++         spider: Union[TestSpider, ItemSpider, TestSpider, RecoverySpider, ItemSpider, NotGeneratorCallbackSpider, CrawlSpiderWithParseMethod, SingleRequestSpider, SimpleSpider, HeadersReceivedCallbackSpider, FollowAllSpider, GeneratorOutputChainSpider, KeywordArgumentsSpider, _HttpErrorSpider, SignalCatcherSpider, GeneratorCallbackSpider, NotGeneratorOutputChainSpider, StartUrlsSpider, DuplicateStartRequestsSpider, ProcessSpiderInputSpiderWithoutErrback, BytesReceivedCallbackSpider, DelaySpider]
+      ) -> Deferred: ...
+      def _scrape2(
+          self,
+-         result: Union[Response, Failure],
+?                               ---------
++         result: Union[Failure, Response],
+?                       +++++++++
+          request: Request,
+-         spider: Spider
++         spider: Union[TestSpider, ItemSpider, TestSpider, RecoverySpider, ItemSpider, NotGeneratorCallbackSpider, CrawlSpiderWithParseMethod, SingleRequestSpider, SimpleSpider, HeadersReceivedCallbackSpider, GeneratorOutputChainSpider, FollowAllSpider, KeywordArgumentsSpider, _HttpErrorSpider, SignalCatcherSpider, GeneratorCallbackSpider, NotGeneratorOutputChainSpider, StartUrlsSpider, ProcessSpiderInputSpiderWithoutErrback, DuplicateStartRequestsSpider, BytesReceivedCallbackSpider, DelaySpider]
+      ) -> Deferred: ...
+-     def _scrape_next(self, spider: Spider) -> None: ...
++     def _scrape_next(
++         self,
++         spider: Union[TestSpider, ItemSpider, TestSpider, ItemSpider, NotGeneratorCallbackSpider, CrawlSpiderWithParseMethod, SingleRequestSpider, SimpleSpider, HeadersReceivedCallbackSpider, GeneratorOutputChainSpider, FollowAllSpider, KeywordArgumentsSpider, _HttpErrorSpider, SignalCatcherSpider, GeneratorCallbackSpider, NotGeneratorOutputChainSpider, StartUrlsSpider, ProcessSpiderInputSpiderWithoutErrback, DuplicateStartRequestsSpider, BytesReceivedCallbackSpider, RecoverySpider, DelaySpider]
++     ) -> None: ...
+      def call_spider(
+          self,
+-         result: Union[Response, Failure],
+?                               ---------
++         result: Union[Failure, Response],
+?                       +++++++++
+          request: Request,
+-         spider: Spider
++         spider: Union[TestSpider, ItemSpider, TestSpider, ItemSpider, NotGeneratorCallbackSpider, CrawlSpiderWithParseMethod, SingleRequestSpider, SimpleSpider, HeadersReceivedCallbackSpider, GeneratorOutputChainSpider, FollowAllSpider, KeywordArgumentsSpider, _HttpErrorSpider, SignalCatcherSpider, GeneratorCallbackSpider, NotGeneratorOutputChainSpider, StartUrlsSpider, ProcessSpiderInputSpiderWithoutErrback, DuplicateStartRequestsSpider, BytesReceivedCallbackSpider, RecoverySpider, DelaySpider]
+      ) -> Deferred: ...
+-     def close_spider(self, spider: Spider) -> Deferred: ...
++     def close_spider(
++         self,
++         spider: Union[TestSpider, ItemSpider, TestSpider, RecoverySpider, ItemSpider, NotGeneratorCallbackSpider, CrawlSpiderWithParseMethod, SingleRequestSpider, SimpleSpider, HeadersReceivedCallbackSpider, GeneratorOutputChainSpider, FollowAllSpider, KeywordArgumentsSpider, _HttpErrorSpider, SignalCatcherSpider, GeneratorCallbackSpider, NotGeneratorOutputChainSpider, StartUrlsSpider, NoRequestsSpider, DuplicateStartRequestsSpider, ProcessSpiderInputSpiderWithoutErrback, BytesReceivedCallbackSpider, DelaySpider]
++     ) -> Deferred: ...
+      def enqueue_scrape(
+          self,
+-         result: Union[Response, Failure],
+?                               ---------
++         result: Union[Failure, Response],
+?                       +++++++++
+          request: Request,
+-         spider: Spider
++         spider: Union[TestSpider, ItemSpider, TestSpider, ItemSpider, NotGeneratorCallbackSpider, CrawlSpiderWithParseMethod, SingleRequestSpider, SimpleSpider, HeadersReceivedCallbackSpider, GeneratorOutputChainSpider, FollowAllSpider, KeywordArgumentsSpider, _HttpErrorSpider, SignalCatcherSpider, GeneratorCallbackSpider, NotGeneratorOutputChainSpider, StartUrlsSpider, ProcessSpiderInputSpiderWithoutErrback, DuplicateStartRequestsSpider, BytesReceivedCallbackSpider, RecoverySpider, DelaySpider]
+      ) -> Deferred: ...
+      def handle_spider_error(
+          self,
+          _failure: Failure,
+          request: Request,
+-         response: Response,
++         response: TextResponse,
+?                   ++++
+-         spider: Spider
++         spider: Union[ErrorSpider, SignalCatcherSpider, NotGeneratorCallbackSpider, GeneratorCallbackSpider, KeywordArgumentsSpider, ProcessSpiderInputSpiderWithoutErrback]
+      ) -> None: ...
+      def handle_spider_output(
+          self,
+-         result: Iterable,
++         result: Optional[Union[List[Any], MutableChain]],
+          request: Request,
+-         response: Response,
++         response: Union[Failure, Response],
+?                   +++++++++++++++        +
+-         spider: Spider
++         spider: Union[TestSpider, ItemSpider, TestSpider, RecoverySpider, ItemSpider, NotGeneratorCallbackSpider, CrawlSpiderWithParseMethod, SingleRequestSpider, SimpleSpider, HeadersReceivedCallbackSpider, FollowAllSpider, GeneratorOutputChainSpider, KeywordArgumentsSpider, _HttpErrorSpider, SignalCatcherSpider, GeneratorCallbackSpider, NotGeneratorOutputChainSpider, StartUrlsSpider, DuplicateStartRequestsSpider, ProcessSpiderInputSpiderWithoutErrback, BytesReceivedCallbackSpider, DelaySpider]
+      ) -> Deferred: ...
+      def is_idle(self) -> bool: ...
+-     def open_spider(self, spider: Spider) -> Iterator[DeferredList]: ...
++     def open_spider(
++         self,
++         spider: Union[TestSpider, ItemSpider, TestSpider, ItemSpider, NotGeneratorCallbackSpider, CrawlSpiderWithParseMethod, SingleRequestSpider, SimpleSpider, HeadersReceivedCallbackSpider, FollowAllSpider, GeneratorOutputChainSpider, KeywordArgumentsSpider, _HttpErrorSpider, SignalCatcherSpider, NoRequestsSpider, NotGeneratorOutputChainSpider, StartUrlsSpider, GeneratorCallbackSpider, DuplicateStartRequestsSpider, ProcessSpiderInputSpiderWithoutErrback, BytesReceivedCallbackSpider, RecoverySpider, DelaySpider]
++     ) -> Iterator[DeferredList]: ...
+
+
+  class Slot:
+      def __init__(self, max_active_size: int = ...) -> None: ...
+      def add_response_request(
+          self,
+          result: Union[Response, Failure],
+          request: Request
+      ) -> Deferred: ...
+      def finish_response(
+          self,
+-         result: Union[Response, Failure],
+?                               ---------
++         result: Union[Failure, Response],
+?                       +++++++++
+          request: Request
+      ) -> None: ...
+      def is_idle(self) -> bool: ...
+      def needs_backout(self) -> bool: ...
+      def next_response_request_deferred(
+          self
+-     ) -> Tuple[Union[Response, Failure], Request, Deferred]: ...
++     ) -> Union[Tuple[TextResponse, Request, Deferred], Tuple[Response, Request, Deferred], Tuple[html.HtmlResponse, Request, Deferred], Tuple[Failure, Request, Deferred]]: ...

@@ -3,7 +3,7 @@ Downloader Middleware manager
 
 See documentation in docs/topics/downloader-middleware.rst
 """
-from typing import Callable, Union
+from typing import List, Type, Callable, Union
 
 from twisted.internet import defer
 from twisted.python.failure import Failure
@@ -14,6 +14,22 @@ from scrapy.http import Request, Response
 from scrapy.middleware import MiddlewareManager
 from scrapy.utils.defer import mustbe_deferred, deferred_from_coro
 from scrapy.utils.conf import build_component_list
+from scrapy.downloadermiddlewares.cookies import CookiesMiddleware
+from scrapy.downloadermiddlewares.defaultheaders import DefaultHeadersMiddleware
+from scrapy.downloadermiddlewares.downloadtimeout import DownloadTimeoutMiddleware
+from scrapy.downloadermiddlewares.httpauth import HttpAuthMiddleware
+from scrapy.downloadermiddlewares.httpcompression import HttpCompressionMiddleware
+from scrapy.downloadermiddlewares.httpproxy import HttpProxyMiddleware
+from scrapy.downloadermiddlewares.redirect import MetaRefreshMiddleware, RedirectMiddleware
+from scrapy.downloadermiddlewares.retry import RetryMiddleware
+from scrapy.downloadermiddlewares.stats import DownloaderStats
+from scrapy.downloadermiddlewares.useragent import UserAgentMiddleware
+from scrapy.http.request import Request
+from scrapy.settings import Settings
+from scrapy.spiders import Spider
+from tests.test_request_attribute_binding import AlternativeCallbacksMiddleware, CatchExceptionDoNotOverrideRequestMiddleware, CatchExceptionOverrideRequestMiddleware, ProcessResponseMiddleware, RaiseExceptionRequestMiddleware
+from tests.test_request_cb_kwargs import InjectArgumentsDownloaderMiddleware
+from twisted.internet.defer import Deferred
 
 
 class DownloaderMiddlewareManager(MiddlewareManager):
@@ -21,11 +37,11 @@ class DownloaderMiddlewareManager(MiddlewareManager):
     component_name = 'downloader middleware'
 
     @classmethod
-    def _get_mwlist_from_settings(cls, settings):
+    def _get_mwlist_from_settings(cls, settings: Settings) -> List[Union[str, Type[RaiseExceptionRequestMiddleware], Type[CatchExceptionOverrideRequestMiddleware], Type[AlternativeCallbacksMiddleware], Type[CatchExceptionDoNotOverrideRequestMiddleware], Type[ProcessResponseMiddleware], Type[InjectArgumentsDownloaderMiddleware]]]:
         return build_component_list(
             settings.getwithbase('DOWNLOADER_MIDDLEWARES'))
 
-    def _add_middleware(self, mw):
+    def _add_middleware(self, mw: Union[AlternativeCallbacksMiddleware, CookiesMiddleware, RedirectMiddleware, HttpCompressionMiddleware, CatchExceptionDoNotOverrideRequestMiddleware, HttpAuthMiddleware, DefaultHeadersMiddleware, CatchExceptionOverrideRequestMiddleware, RetryMiddleware, MetaRefreshMiddleware, HttpProxyMiddleware, RaiseExceptionRequestMiddleware, DownloadTimeoutMiddleware, UserAgentMiddleware, ProcessResponseMiddleware, DownloaderStats, InjectArgumentsDownloaderMiddleware]) -> None:
         if hasattr(mw, 'process_request'):
             self.methods['process_request'].append(mw.process_request)
         if hasattr(mw, 'process_response'):
@@ -33,7 +49,7 @@ class DownloaderMiddlewareManager(MiddlewareManager):
         if hasattr(mw, 'process_exception'):
             self.methods['process_exception'].appendleft(mw.process_exception)
 
-    def download(self, download_func: Callable, request: Request, spider: Spider):
+    def download(self, download_func: Callable, request: Request, spider: Spider) -> Deferred:
         @defer.inlineCallbacks
         def process_request(request: Request):
             for method in self.methods['process_request']:

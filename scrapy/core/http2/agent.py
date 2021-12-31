@@ -4,7 +4,7 @@ from typing import Deque, Dict, List, Optional, Tuple
 from twisted.internet import defer
 from twisted.internet.base import ReactorBase
 from twisted.internet.defer import Deferred
-from twisted.internet.endpoints import HostnameEndpoint
+from twisted.internet.endpoints import _WrapperEndpoint, HostnameEndpoint
 from twisted.python.failure import Failure
 from twisted.web.client import URI, BrowserLikePolicyForHTTPS, _StandardEndpointFactory
 from twisted.web.error import SchemeNotSupported
@@ -107,7 +107,7 @@ class H2Agent:
             self._reactor, self._context_factory, connect_timeout, bind_address
         )
 
-    def get_endpoint(self, uri: URI):
+    def get_endpoint(self, uri: URI) -> _WrapperEndpoint:
         return self.endpoint_factory.endpointForURI(uri)
 
     def get_key(self, uri: URI) -> Tuple:
@@ -149,7 +149,7 @@ class ScrapyProxyH2Agent(H2Agent):
         )
         self._proxy_uri = proxy_uri
 
-    def get_endpoint(self, uri: URI):
+    def get_endpoint(self, uri: URI) -> _WrapperEndpoint:
         return self.endpoint_factory.endpointForURI(self._proxy_uri)
 
     def get_key(self, uri: URI) -> Tuple:

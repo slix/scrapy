@@ -3,13 +3,16 @@ from w3lib.url import parse_data_uri
 from scrapy.http import TextResponse
 from scrapy.responsetypes import responsetypes
 from scrapy.utils.decorators import defers
+from scrapy.http.request import Request
+from scrapy.http.response.text import TextResponse
+from scrapy.spiders import Spider
 
 
 class DataURIDownloadHandler:
     lazy = False
 
     @defers
-    def download_request(self, request, spider):
+    def download_request(self, request: Request, spider: Spider) -> TextResponse:
         uri = parse_data_uri(request.url)
         respcls = responsetypes.from_mimetype(uri.media_type)
 

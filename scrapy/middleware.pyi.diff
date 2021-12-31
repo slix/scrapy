@@ -1,0 +1,108 @@
+  from scrapy.core.downloader.middleware import DownloaderMiddlewareManager
+  from scrapy.core.spidermw import SpiderMiddlewareManager
+  from scrapy.crawler import Crawler
+  from scrapy.extension import ExtensionManager
+  from scrapy.extensions.closespider import CloseSpider
+  from scrapy.extensions.corestats import CoreStats
+  from scrapy.extensions.feedexport import FeedExporter
+  from scrapy.extensions.logstats import LogStats
+  from scrapy.extensions.memusage import MemoryUsage
+  from scrapy.extensions.spiderstate import SpiderState
+  from scrapy.extensions.telnet import TelnetConsole
+  from scrapy.extensions.throttle import AutoThrottle
+  from scrapy.item import Item
+  from scrapy.pipelines import ItemPipelineManager
+  from scrapy.pipelines.files import FilesPipeline
+  from scrapy.settings import Settings
+  from scrapy.spidermiddlewares.depth import DepthMiddleware
+  from scrapy.spidermiddlewares.httperror import HttpErrorMiddleware
+  from scrapy.spidermiddlewares.offsite import OffsiteMiddleware
+  from scrapy.spidermiddlewares.referer import RefererMiddleware
+  from scrapy.spidermiddlewares.urllength import UrlLengthMiddleware
+  from scrapy.spiders import Spider
+  from tests.pipelines import (
+      ProcessWithZeroDivisionErrorPipiline,
+      ZeroDivisionErrorPipeline,
+  )
+  from tests.test_engine import AttrsItem
+  from tests.test_logformatter import DropSomeItemsPipeline
+  from tests.test_middleware import (
+      M1,
+      M2,
+      M3,
+      TestMiddlewareManager,
+  )
+  from tests.test_pipelines import (
+      AsyncDefAsyncioPipeline,
+      AsyncDefNotAsyncioPipeline,
+      AsyncDefPipeline,
+      DeferredPipeline,
+      SimplePipeline,
+  )
+  from tests.test_request_cb_kwargs import InjectArgumentsSpiderMiddleware
+  from tests.test_spidermiddleware_output_chain import (
+      FailProcessSpiderInputMiddleware,
+      GeneratorDoNothingAfterFailureMiddleware,
+      GeneratorDoNothingAfterRecoveryMiddleware,
+      GeneratorFailMiddleware,
+      GeneratorRecoverMiddleware,
+      LogExceptionMiddleware,
+      NotGeneratorDoNothingAfterFailureMiddleware,
+      NotGeneratorDoNothingAfterRecoveryMiddleware,
+      NotGeneratorFailMiddleware,
+      NotGeneratorRecoverMiddleware,
+      RecoveryMiddleware,
+  )
+- from twisted.internet.defer import Deferred
+?                                    ^^^^^^^^
++ from twisted.internet.defer import (
+?                                    ^
++     Deferred,
++     DeferredList,
++ )
+  from typing import (
+      Any,
+      Dict,
+      Iterator,
+      List,
+      Optional,
+      Union,
+  )
+
+
+  class MiddlewareManager:
+      def __init__(self, *middlewares) -> None: ...
+      def _add_middleware(
+          self,
+          mw: Union[GeneratorRecoverMiddleware, AutoThrottle, DeferredPipeline, GeneratorFailMiddleware, DropSomeItemsPipeline, FeedExporter, LogStats, NotGeneratorDoNothingAfterRecoveryMiddleware, CoreStats, DepthMiddleware, TelnetConsole, NotGeneratorDoNothingAfterFailureMiddleware, M3, InjectArgumentsSpiderMiddleware, ProcessWithZeroDivisionErrorPipiline, AsyncDefNotAsyncioPipeline, HttpErrorMiddleware, OffsiteMiddleware, M1, FilesPipeline, UrlLengthMiddleware, AsyncDefPipeline, GeneratorDoNothingAfterRecoveryMiddleware, GeneratorDoNothingAfterFailureMiddleware, SpiderState, CloseSpider, NotGeneratorRecoverMiddleware, LogExceptionMiddleware, NotGeneratorFailMiddleware, FailProcessSpiderInputMiddleware, M2, AsyncDefAsyncioPipeline, ZeroDivisionErrorPipeline, MemoryUsage, RecoveryMiddleware, SimplePipeline, RefererMiddleware]
+      ) -> None: ...
+      def _process_chain(
+          self,
+          methodname: str,
+          obj: Union[Dict[str, str], Dict[Any, Any], Dict[str, List[str]], Item, Dict[str, int], Dict[str, List[Union[Any, str]]], AttrsItem, List[Any], Iterator[Any]],
+          *args
+      ) -> Deferred: ...
+-     def _process_parallel(self, methodname: str, obj: Spider, *args) -> Deferred: ...
++     def _process_parallel(
++         self,
++         methodname: str,
++         obj: Spider,
++         *args
++     ) -> DeferredList: ...
+-     def close_spider(self, spider: Spider) -> Deferred: ...
++     def close_spider(self, spider: Spider) -> DeferredList: ...
+?                                                       ++++
+      @classmethod
+      def from_crawler(
+          cls,
+          crawler: Crawler
+      ) -> Union[ExtensionManager, ItemPipelineManager, DownloaderMiddlewareManager, SpiderMiddlewareManager]: ...
+      @classmethod
+      def from_settings(
+          cls,
+          settings: Settings,
+          crawler: Optional[Crawler] = ...
+      ) -> Union[TestMiddlewareManager, ExtensionManager, ItemPipelineManager, SpiderMiddlewareManager, DownloaderMiddlewareManager]: ...
+-     def open_spider(self, spider: Spider) -> Deferred: ...
++     def open_spider(self, spider: Spider) -> DeferredList: ...
+?                                                      ++++

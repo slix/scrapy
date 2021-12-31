@@ -1,0 +1,89 @@
++ from lxml.etree import _ElementUnicodeResult
++ from scrapy.http.headers import Headers
++ from scrapy.http.response import Response
++ from scrapy.utils.datatypes import SequenceExclude
+  from tests.test_request_dict import (
+      TestSpider,
+      TestSpiderDelegation,
+  )
++ from twisted.python.failure import Failure
+  from typing import (
++     Any,
+      Callable,
++     Dict,
+      List,
+      Optional,
++     Tuple,
+      Type,
+      Union,
+  )
+
+
+  class Request:
+      def __init__(
+          self,
+-         url: str,
++         url: Union[int, str],
+?              +++++++++++   +
+-         callback: Optional[Callable] = ...,
++         callback: Optional[Union[Callable, str]] = ...,
+?                            ++++++        +++++ +
+-         method: str = ...,
++         method: Union[bytes, str] = ...,
+?                 +++++++++++++   +
+-         headers: Optional[dict] = ...,
++         headers: Optional[Union[Dict[str, str], Dict[Any, Any], Dict[bytes, str], Dict[str, Union[str, List[str]]], Dict[str, None], Headers, Dict[str, List[str]], List[Union[Tuple[str, str], Tuple[str, bytes]]], List[Tuple[str, str]], List[Tuple[str, bytes]], Dict[bytes, bytes], Dict[bytes, List[bytes]], Dict[str, bytes]]] = ...,
+          body: Optional[Union[bytes, str]] = ...,
+-         cookies: Optional[Union[dict, List[dict]]] = ...,
+-         meta: Optional[dict] = ...,
++         cookies: Optional[Union[Dict[str, int], List[Union[Dict[str, Optional[str]], Dict[str, str]]], Dict[str, str], Dict[Any, Any], List[Dict[str, str]], Dict[str, float], Dict[str, bool], Dict[str, bytes]]] = ...,
++         meta: Optional[Union[Dict[Any, Any], Dict[str, str], Dict[str, int], Dict[str, Response], Dict[str, Request], Dict[str, Union[str, Callable]], Dict[str, None], Dict[str, Union[SequenceExclude, float, str]], Dict[str, bytes], Dict[str, Failure], Dict[str, Union[int, _ElementUnicodeResult]], Dict[str, Union[float, str]], Dict[str, float], Dict[str, Union[int, List[str]]], Dict[str, Union[bytes, str]], Dict[str, Union[float, str, int]], Dict[str, Union[int, List[str], List[int]]], Dict[str, List[int]], Dict[str, Callable], Dict[str, bool]]] = ...,
+          encoding: str = ...,
+          priority: int = ...,
+-         dont_filter: bool = ...,
+?                      ^^^^
++         dont_filter: int = ...,
+?                      ^^^
+-         errback: Optional[Callable] = ...,
++         errback: Optional[Union[Callable, str]] = ...,
+?                           ++++++        +++++ +
+-         flags: Optional[List[str]] = ...,
++         flags: Optional[Union[List[Any], List[str]]] = ...,
+?                         +++++++++++++++++          +
+-         cb_kwargs: Optional[dict] = ...
++         cb_kwargs: Optional[Union[Dict[str, str], Dict[str, Union[str, int]], Dict[Any, Any]]] = ...
+      ) -> None: ...
+      def __str__(self) -> str: ...
+      def _get_body(self) -> bytes: ...
+      def _get_url(self) -> str: ...
+      def _set_body(self, body: Optional[Union[bytes, str]]) -> None: ...
+-     def _set_url(self, url: str) -> None: ...
++     def _set_url(self, url: Union[int, str]) -> None: ...
+?                             +++++++++++   +
+      @property
+-     def cb_kwargs(self) -> dict: ...
++     def cb_kwargs(self) -> Union[Dict[Any, Any], Dict[str, Union[str, int]], Dict[str, bool], Dict[str, str]]: ...
+      def copy(self) -> Request: ...
+      @property
+      def encoding(self) -> str: ...
+      @classmethod
+      def from_curl(
+          cls: Type[~RequestTypeVar],
+          curl_command: str,
+          ignore_unknown_options: bool = ...,
+          **kwargs
+-     ) -> RequestTypeVar: ...
+?                 -------
++     ) -> Request: ...
+      @property
+-     def meta(self) -> dict: ...
++     def meta(
++         self
++     ) -> Union[Dict[str, str], Dict[Any, Any], Dict[str, Union[Request, int]], Dict[str, Union[SequenceExclude, float, str, int, List[str]]], Dict[str, Union[SequenceExclude, float, str, int, List[str], List[int]]], Dict[str, Union[int, _ElementUnicodeResult, float]], Dict[str, SequenceExclude], Dict[str, Union[str, int]], Dict[str, Union[Request, int, float]], Dict[str, int], Dict[str, Union[float, str, int, List[str]]], Dict[str, Union[SequenceExclude, float, str, int]], Dict[str, Response], Dict[str, Request], Dict[str, Union[str, Callable]], Dict[str, None], Dict[str, Union[Request, float, str, int]], Dict[str, Union[SequenceExclude, float, str]], Dict[str, bytes], Dict[str, Union[SequenceExclude, float]], Dict[str, Union[Request, float]], Dict[str, Failure], Dict[str, Union[bool, float]], Dict[str, Union[int, _ElementUnicodeResult]], Dict[str, Union[float, str]], Dict[str, Union[str, bool]], Dict[str, Union[bool, float, str]], Dict[str, Union[Request, float, str]], Dict[str, Union[float, str, int, List[str], List[int]]], Dict[str, float], Dict[str, Union[int, List[str]]], Dict[str, Union[bytes, str]], Dict[str, Union[float, str, int]], Dict[str, Union[int, List[str], List[int]]], Dict[str, List[int]], Dict[str, Callable], Dict[str, Union[int, float]], Dict[str, bool], Dict[str, Union[float, int, List[str]]]]: ...
+      def replace(self, *args, **kwargs) -> Request: ...
+-     def to_dict(self, *, spider: Optional['scrapy.Spider'] = ...) -> dict: ...
++     def to_dict(
++         self,
++         *,
++         spider = ...
++     ) -> Union[Dict[str, Union[str, Dict[Any, Any], bytes, int, List[Any]]], Dict[str, Optional[Union[str, Dict[Any, Any], bytes, Dict[str, str], int, List[Any]]]], Dict[str, Optional[Union[str, Dict[Any, Any], bytes, int, List[Any]]]], Dict[str, Union[str, Dict[bytes, List[bytes]], bytes, Dict[str, str], int, List[str]]], Dict[str, Optional[Union[str, Dict[bytes, List[bytes]], bytes, Dict[Any, Any], int, List[Any], Dict[str, int]]]]]: ...

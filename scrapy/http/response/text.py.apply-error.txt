@@ -1,0 +1,12 @@
+WARNING: Failed decoding trace: Module 'tests.test_http_response' has no attribute 'BaseResponseTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_response' has no attribute 'BaseResponseTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_response' has no attribute 'BaseResponseTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_response' has no attribute 'BaseResponseTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_response' has no attribute 'BaseResponseTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_response' has no attribute 'BaseResponseTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_response' has no attribute 'BaseResponseTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_response' has no attribute 'BaseResponseTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_response' has no attribute 'BaseResponseTest.test_copy_inherited_classes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_http_response' has no attribute 'BaseResponseTest.test_copy_inherited_classes.<locals>'
+ERROR: Failed applying stub with libcst:
+Could not resolve a unique qualified name for type Selector at 19:28. Candidate names were: ['scrapy.selector.unified.Selector', 'parsel.selector.Selector']

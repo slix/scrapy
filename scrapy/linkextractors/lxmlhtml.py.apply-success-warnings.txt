@@ -1,0 +1,1 @@
+WARNING: Failed decoding trace: Module 'tests.test_linkextractors' has no attribute 'LxmlLinkExtractorTestCase.test_filteringlinkextractor_deprecation_warning.<locals>'

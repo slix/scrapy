@@ -8,19 +8,20 @@ SitemapSpider, its API is subject to change without notice.
 from urllib.parse import urljoin
 
 import lxml.etree
+from typing import Dict, Iterator, List, Optional, Union
 
 
 class Sitemap:
     """Class to parse Sitemap (type=urlset) and Sitemap Index
     (type=sitemapindex) files"""
 
-    def __init__(self, xmltext):
+    def __init__(self, xmltext: bytes) -> None:
         xmlp = lxml.etree.XMLParser(recover=True, remove_comments=True, resolve_entities=False)
         self._root = lxml.etree.fromstring(xmltext, parser=xmlp)
         rt = self._root.tag
         self.type = self._root.tag.split('}', 1)[1] if '}' in rt else rt
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Union[Dict[str, str], Dict[str, Union[str, List[str]]]]]:
         for elem in self._root.getchildren():
             d = {}
             for el in elem.getchildren():
@@ -37,7 +38,7 @@ class Sitemap:
                 yield d
 
 
-def sitemap_urls_from_robots(robots_text, base_url=None):
+def sitemap_urls_from_robots(robots_text: str, base_url: Optional[str]=None) -> Iterator[str]:
     """Return an iterator over all sitemap urls contained in the given
     robots.txt file
     """

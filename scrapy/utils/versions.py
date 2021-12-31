@@ -10,9 +10,10 @@ import w3lib
 
 import scrapy
 from scrapy.utils.ssl import get_openssl_version
+from typing import List, Tuple
 
 
-def scrapy_components_versions():
+def scrapy_components_versions() -> List[Tuple[str, str]]:
     lxml_version = ".".join(map(str, lxml.etree.LXML_VERSION))
     libxml2_version = ".".join(map(str, lxml.etree.LIBXML_VERSION))
 

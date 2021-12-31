@@ -6,6 +6,12 @@ from w3lib.url import safe_url_string
 from scrapy.http import HtmlResponse
 from scrapy.utils.response import get_meta_refresh
 from scrapy.exceptions import IgnoreRequest, NotConfigured
+from scrapy.crawler import Crawler
+from scrapy.http.request import Request
+from scrapy.http.response import Response
+from scrapy.settings import Settings
+from scrapy.spiders import Spider
+from typing import Union
 
 
 logger = logging.getLogger(__name__)
@@ -15,7 +21,7 @@ class BaseRedirectMiddleware:
 
     enabled_setting = 'REDIRECT_ENABLED'
 
-    def __init__(self, settings):
+    def __init__(self, settings: Settings) -> None:
         if not settings.getbool(self.enabled_setting):
             raise NotConfigured
 
@@ -23,10 +29,10 @@ class BaseRedirectMiddleware:
         self.priority_adjust = settings.getint('REDIRECT_PRIORITY_ADJUST')
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls, crawler: Crawler) -> Union[RedirectMiddleware, MetaRefreshMiddleware]:
         return cls(crawler.settings)
 
-    def _redirect(self, redirected, request, spider, reason):
+    def _redirect(self, redirected: Request, request: Request, spider: Spider, reason: Union[int, str]) -> Request:
         ttl = request.meta.setdefault('redirect_ttl', self.max_redirect_times)
         redirects = request.meta.get('redirect_times', 0) + 1
 
@@ -46,7 +52,7 @@ class BaseRedirectMiddleware:
                          {'request': request}, extra={'spider': spider})
             raise IgnoreRequest("max redirections reached")
 
-    def _redirect_request_using_get(self, request, redirect_url):
+    def _redirect_request_using_get(self, request: Request, redirect_url: str) -> Request:
         redirected = request.replace(url=redirect_url, method='GET', body='')
         redirected.headers.pop('Content-Type', None)
         redirected.headers.pop('Content-Length', None)
@@ -59,7 +65,7 @@ class RedirectMiddleware(BaseRedirectMiddleware):
     and meta-refresh html tag.
     """
 
-    def process_response(self, request, response, spider):
+    def process_response(self, request: Request, response: Response, spider: Spider) -> Union[Response, Request]:
         if (
             request.meta.get('dont_redirect', False)
             or response.status in getattr(spider, 'handle_httpstatus_list', [])
@@ -91,12 +97,12 @@ class MetaRefreshMiddleware(BaseRedirectMiddleware):
 
     enabled_setting = 'METAREFRESH_ENABLED'
 
-    def __init__(self, settings):
+    def __init__(self, settings: Settings) -> None:
         super().__init__(settings)
         self._ignore_tags = settings.getlist('METAREFRESH_IGNORE_TAGS')
         self._maxdelay = settings.getint('METAREFRESH_MAXDELAY')
 
-    def process_response(self, request, response, spider):
+    def process_response(self, request: Request, response: Response, spider: Spider) -> Union[Response, Request]:
         if (
             request.meta.get('dont_redirect', False)
             or request.method == 'HEAD'

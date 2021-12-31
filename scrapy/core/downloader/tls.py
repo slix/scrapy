@@ -6,6 +6,7 @@ from twisted.internet._sslverify import ClientTLSOptions, verifyHostname, Verifi
 from twisted.internet.ssl import AcceptableCiphers
 
 from scrapy.utils.ssl import x509name_to_string, get_temp_key_info
+from OpenSSL.SSL import Connection, Context
 
 
 logger = logging.getLogger(__name__)
@@ -38,11 +39,11 @@ class ScrapyClientTLSOptions(ClientTLSOptions):
     logging warnings. Also, HTTPS connection parameters logging is added.
     """
 
-    def __init__(self, hostname, ctx, verbose_logging=False):
+    def __init__(self, hostname: str, ctx: Context, verbose_logging: bool=False) -> None:
         super().__init__(hostname, ctx)
         self.verbose_logging = verbose_logging
 
-    def _identityVerifyingInfoCallback(self, connection, where, ret):
+    def _identityVerifyingInfoCallback(self, connection: Connection, where: int, ret: int) -> None:
         if where & SSL.SSL_CB_HANDSHAKE_START:
             connection.set_tlsext_host_name(self._hostnameBytes)
         elif where & SSL.SSL_CB_HANDSHAKE_DONE:

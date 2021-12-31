@@ -2,13 +2,14 @@ import logging
 
 from scrapy.exceptions import NotConfigured
 from scrapy import signals
+from scrapy.crawler import Crawler
 
 logger = logging.getLogger(__name__)
 
 
 class AutoThrottle:
 
-    def __init__(self, crawler):
+    def __init__(self, crawler: Crawler) -> None:
         self.crawler = crawler
         if not crawler.settings.getbool('AUTOTHROTTLE_ENABLED'):
             raise NotConfigured
@@ -19,7 +20,7 @@ class AutoThrottle:
         crawler.signals.connect(self._response_downloaded, signal=signals.response_downloaded)
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls, crawler: Crawler) -> AutoThrottle:
         return cls(crawler)
 
     def _spider_opened(self, spider):

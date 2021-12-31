@@ -1,6 +1,6 @@
 import re
 from time import time
-from urllib.parse import urlparse, urlunparse, urldefrag
+from urllib.parse import ParseResult, urlparse, urlunparse, urldefrag
 
 from twisted.web.http import HTTPClient
 from twisted.internet import defer, reactor
@@ -10,9 +10,17 @@ from scrapy.http import Headers
 from scrapy.utils.httpobj import urlparse_cached
 from scrapy.utils.python import to_bytes, to_unicode
 from scrapy.responsetypes import responsetypes
+from scrapy.http.headers import Headers
+from scrapy.http.request import Request
+from scrapy.http.response import Response
+from twisted.internet.address import IPv4Address
+from twisted.internet.base import DelayedCall
+from twisted.internet.defer import TimeoutError
+from twisted.python.failure import Failure
+from typing import Tuple, Union
 
 
-def _parsed_url_args(parsed):
+def _parsed_url_args(parsed: ParseResult) -> Tuple[bytes, bytes, bytes, int, bytes]:
     # Assume parsed is urlparse-d from Request.url,
     # which was passed via safe_url_string and is ascii-only.
     path = urlunparse(('', '', parsed.path or '/', parsed.params, parsed.query, ''))
@@ -26,7 +34,7 @@ def _parsed_url_args(parsed):
     return scheme, netloc, host, port, path
 
 
-def _parse(url):
+def _parse(url: str) -> Tuple[bytes, bytes, bytes, int, bytes]:
     """ Return tuple of (scheme, netloc, host, port, path),
     all in bytes except for port which is int.
     Assume url is from Request.url, which was passed via safe_url_string
@@ -43,7 +51,7 @@ class ScrapyHTTPPageGetter(HTTPClient):
 
     delimiter = b'\n'
 
-    def connectionMade(self):
+    def connectionMade(self) -> None:
         self.headers = Headers()  # bucket for response headers
 
         # Method command
@@ -57,24 +65,24 @@ class ScrapyHTTPPageGetter(HTTPClient):
         if self.factory.body is not None:
             self.transport.write(self.factory.body)
 
-    def lineReceived(self, line):
+    def lineReceived(self, line: bytes) -> None:
         return HTTPClient.lineReceived(self, line.rstrip())
 
-    def handleHeader(self, key, value):
+    def handleHeader(self, key: bytes, value: bytes) -> None:
         self.headers.appendlist(key, value)
 
-    def handleStatus(self, version, status, message):
+    def handleStatus(self, version: bytes, status: bytes, message: bytes) -> None:
         self.factory.gotStatus(version, status, message)
 
-    def handleEndHeaders(self):
+    def handleEndHeaders(self) -> None:
         self.factory.gotHeaders(self.headers)
 
-    def connectionLost(self, reason):
+    def connectionLost(self, reason: Failure) -> None:
         self._connection_lost_reason = reason
         HTTPClient.connectionLost(self, reason)
         self.factory.noPage(reason)
 
-    def handleResponse(self, response):
+    def handleResponse(self, response: bytes) -> None:
         if self.factory.method.upper() == b'HEAD':
             self.factory.page(b'')
         elif self.length is not None and self.length > 0:
@@ -83,7 +91,7 @@ class ScrapyHTTPPageGetter(HTTPClient):
             self.factory.page(response)
         self.transport.loseConnection()
 
-    def timeout(self):
+    def timeout(self) -> None:
         self.transport.loseConnection()
 
         # transport cleanup needed for HTTPS connections
@@ -108,14 +116,14 @@ class ScrapyHTTPClientFactory(ClientFactory):
     followRedirect = False
     afterFoundGet = False
 
-    def _build_response(self, body, request):
+    def _build_response(self, body: bytes, request: Request) -> Response:
         request.meta['download_latency'] = self.headers_time - self.start_time
         status = int(self.status)
         headers = Headers(self.response_headers)
         respcls = responsetypes.from_args(headers=headers, url=self._url)
         return respcls(url=self._url, status=status, headers=headers, body=body, protocol=to_unicode(self.version))
 
-    def _set_connection_attributes(self, request):
+    def _set_connection_attributes(self, request: Request) -> None:
         parsed = urlparse_cached(request)
         self.scheme, self.netloc, self.host, self.port, self.path = _parsed_url_args(parsed)
         proxy = request.meta.get('proxy')
@@ -123,7 +131,7 @@ class ScrapyHTTPClientFactory(ClientFactory):
             self.scheme, _, self.host, self.port, _ = _parse(proxy)
             self.path = self.url
 
-    def __init__(self, request, timeout=180):
+    def __init__(self, request: Request, timeout: Union[int, float]=180) -> None:
         self._url = urldefrag(request.url)[0]
         # converting to bytes to comply to Twisted interface
         self.url = to_bytes(self._url, encoding='ascii')
@@ -160,12 +168,12 @@ class ScrapyHTTPClientFactory(ClientFactory):
     def __repr__(self):
         return f"<{self.__class__.__name__}: {self.url}>"
 
-    def _cancelTimeout(self, result, timeoutCall):
+    def _cancelTimeout(self, result: None, timeoutCall: DelayedCall) -> None:
         if timeoutCall.active():
             timeoutCall.cancel()
         return result
 
-    def buildProtocol(self, addr):
+    def buildProtocol(self, addr: IPv4Address) -> ScrapyHTTPPageGetter:
         p = ClientFactory.buildProtocol(self, addr)
         p.followRedirect = self.followRedirect
         p.afterFoundGet = self.afterFoundGet
@@ -174,11 +182,11 @@ class ScrapyHTTPClientFactory(ClientFactory):
             self.deferred.addBoth(self._cancelTimeout, timeoutCall)
         return p
 
-    def gotHeaders(self, headers):
+    def gotHeaders(self, headers: Headers) -> None:
         self.headers_time = time()
         self.response_headers = headers
 
-    def gotStatus(self, version, status, message):
+    def gotStatus(self, version: bytes, status: bytes, message: bytes) -> None:
         """
         Set the status of the request on us.
         @param version: The HTTP version.
@@ -191,12 +199,12 @@ class ScrapyHTTPClientFactory(ClientFactory):
         """
         self.version, self.status, self.message = version, status, message
 
-    def page(self, page):
+    def page(self, page: bytes) -> None:
         if self.waiting:
             self.waiting = 0
             self.deferred.callback(page)
 
-    def noPage(self, reason):
+    def noPage(self, reason: Union[Failure, TimeoutError]) -> None:
         if self.waiting:
             self.waiting = 0
             self.deferred.errback(reason)

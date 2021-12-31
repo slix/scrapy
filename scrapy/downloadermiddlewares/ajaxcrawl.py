@@ -5,6 +5,13 @@ from w3lib import html
 
 from scrapy.exceptions import NotConfigured
 from scrapy.http import HtmlResponse
+from scrapy.crawler import Crawler
+from scrapy.http.request import Request
+from scrapy.http.response import Response
+from scrapy.http.response.html import HtmlResponse
+from scrapy.settings import Settings
+from scrapy.spiders import Spider
+from typing import Union
 
 
 logger = logging.getLogger(__name__)
@@ -16,7 +23,7 @@ class AjaxCrawlMiddleware:
     For more info see https://developers.google.com/webmasters/ajax-crawling/docs/getting-started.
     """
 
-    def __init__(self, settings):
+    def __init__(self, settings: Settings) -> None:
         if not settings.getbool('AJAXCRAWL_ENABLED'):
             raise NotConfigured
 
@@ -27,10 +34,10 @@ class AjaxCrawlMiddleware:
         self.lookup_bytes = settings.getint('AJAXCRAWL_MAXSIZE', 32768)
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls, crawler: Crawler) -> AjaxCrawlMiddleware:
         return cls(crawler.settings)
 
-    def process_response(self, request, response, spider):
+    def process_response(self, request: Request, response: Response, spider: Spider) -> Union[Response, Request]:
 
         if not isinstance(response, HtmlResponse) or response.status != 200:
             return response
@@ -54,7 +61,7 @@ class AjaxCrawlMiddleware:
         ajax_crawl_request.meta['ajax_crawlable'] = True
         return ajax_crawl_request
 
-    def _has_ajax_crawlable_variant(self, response):
+    def _has_ajax_crawlable_variant(self, response: HtmlResponse) -> bool:
         """
         Return True if a page without hash fragment could be "AJAX crawlable"
         according to https://developers.google.com/webmasters/ajax-crawling/docs/getting-started.
@@ -67,7 +74,7 @@ class AjaxCrawlMiddleware:
 _ajax_crawlable_re = re.compile(r'<meta\s+name=["\']fragment["\']\s+content=["\']!["\']/?>')
 
 
-def _has_ajaxcrawlable_meta(text):
+def _has_ajaxcrawlable_meta(text: str) -> bool:
     """
     >>> _has_ajaxcrawlable_meta('<html><head><meta name="fragment"  content="!"/></head><body></body></html>')
     True

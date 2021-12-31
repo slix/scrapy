@@ -1,0 +1,6 @@
+WARNING: Failed decoding trace: Module 'tests.test_linkextractors' has no attribute 'LxmlLinkExtractorTestCase.test_filteringlinkextractor_deprecation_warning.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_linkextractors' has no attribute 'FilteringLinkExtractorTest.test_deprecation_warning.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_linkextractors' has no attribute 'FilteringLinkExtractorTest.test_deprecation_warning.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_linkextractors' has no attribute 'LxmlLinkExtractorTestCase.test_filteringlinkextractor_deprecation_warning.<locals>'
+WARNING: Failed decoding trace: Module '_sre' has no attribute 'SRE_Pattern'
+WARNING: Failed decoding trace: Module '_sre' has no attribute 'SRE_Pattern'

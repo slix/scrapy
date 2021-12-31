@@ -4,7 +4,7 @@ Spider Middleware manager
 See documentation in docs/topics/spider-middleware.rst
 """
 from itertools import islice
-from typing import Any, Callable, Generator, Iterable, Union
+from typing import Dict, Iterator, List, Optional, Type, Any, Callable, Generator, Iterable, Union
 
 from twisted.internet.defer import Deferred
 from twisted.python.failure import Failure
@@ -16,12 +16,23 @@ from scrapy.middleware import MiddlewareManager
 from scrapy.utils.conf import build_component_list
 from scrapy.utils.defer import mustbe_deferred
 from scrapy.utils.python import MutableChain
+from scrapy.http.request import Request
+from scrapy.http.response import Response
+from scrapy.settings import Settings
+from scrapy.spidermiddlewares.depth import DepthMiddleware
+from scrapy.spidermiddlewares.httperror import HttpErrorMiddleware
+from scrapy.spidermiddlewares.offsite import OffsiteMiddleware
+from scrapy.spidermiddlewares.referer import RefererMiddleware
+from scrapy.spidermiddlewares.urllength import UrlLengthMiddleware
+from scrapy.spiders import Spider
+from tests.test_request_cb_kwargs import InjectArgumentsSpiderMiddleware
+from tests.test_spidermiddleware_output_chain import FailProcessSpiderInputMiddleware, GeneratorDoNothingAfterFailureMiddleware, GeneratorDoNothingAfterRecoveryMiddleware, GeneratorFailMiddleware, GeneratorRecoverMiddleware, LogExceptionMiddleware, NotGeneratorDoNothingAfterFailureMiddleware, NotGeneratorDoNothingAfterRecoveryMiddleware, NotGeneratorFailMiddleware, NotGeneratorRecoverMiddleware, RecoveryMiddleware
 
 
 ScrapeFunc = Callable[[Union[Response, Failure], Request, Spider], Any]
 
 
-def _isiterable(o) -> bool:
+def _isiterable(o: Optional[Union[List[Dict[str, List[str]]], List[Any], int, List[Union[Dict[str, str], Request]], Iterator[Any]]]) -> bool:
     return isinstance(o, Iterable)
 
 
@@ -30,10 +41,10 @@ class SpiderMiddlewareManager(MiddlewareManager):
     component_name = 'spider middleware'
 
     @classmethod
-    def _get_mwlist_from_settings(cls, settings):
+    def _get_mwlist_from_settings(cls, settings: Settings) -> List[Union[Any, str, Type[LogExceptionMiddleware], Type[GeneratorDoNothingAfterRecoveryMiddleware], Type[GeneratorRecoverMiddleware], Type[GeneratorDoNothingAfterFailureMiddleware], Type[GeneratorFailMiddleware], Type[FailProcessSpiderInputMiddleware], Type[InjectArgumentsSpiderMiddleware], Type[RecoveryMiddleware], Type[NotGeneratorDoNothingAfterRecoveryMiddleware], Type[NotGeneratorRecoverMiddleware], Type[NotGeneratorDoNothingAfterFailureMiddleware], Type[NotGeneratorFailMiddleware]]]:
         return build_component_list(settings.getwithbase('SPIDER_MIDDLEWARES'))
 
-    def _add_middleware(self, mw):
+    def _add_middleware(self, mw: Union[NotGeneratorRecoverMiddleware, DepthMiddleware, GeneratorDoNothingAfterFailureMiddleware, UrlLengthMiddleware, NotGeneratorDoNothingAfterFailureMiddleware, GeneratorFailMiddleware, RefererMiddleware, NotGeneratorFailMiddleware, InjectArgumentsSpiderMiddleware, FailProcessSpiderInputMiddleware, OffsiteMiddleware, RecoveryMiddleware, HttpErrorMiddleware, GeneratorDoNothingAfterRecoveryMiddleware, LogExceptionMiddleware, NotGeneratorDoNothingAfterRecoveryMiddleware, GeneratorRecoverMiddleware]) -> None:
         super()._add_middleware(mw)
         if hasattr(mw, 'process_spider_input'):
             self.methods['process_spider_input'].append(mw.process_spider_input)
@@ -138,5 +149,5 @@ class SpiderMiddlewareManager(MiddlewareManager):
         dfd.addCallbacks(callback=process_callback_output, errback=process_spider_exception)
         return dfd
 
-    def process_start_requests(self, start_requests, spider: Spider) -> Deferred:
+    def process_start_requests(self, start_requests: Union[Iterator[Any], List[Any]], spider: Spider) -> Deferred:
         return self._process_chain('process_start_requests', start_requests, spider)

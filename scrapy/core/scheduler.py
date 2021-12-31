@@ -3,7 +3,7 @@ import logging
 import os
 from abc import abstractmethod
 from os.path import exists, join
-from typing import Optional, Type, TypeVar
+from typing import Union, Optional, Type, TypeVar
 
 from twisted.internet.defer import Deferred
 
@@ -12,6 +12,8 @@ from scrapy.http.request import Request
 from scrapy.spiders import Spider
 from scrapy.utils.job import job_dir
 from scrapy.utils.misc import create_instance, load_object
+from scrapy.pqueues import DownloaderAwarePriorityQueue, ScrapyPriorityQueue
+from tests.test_scheduler_base import MinimalScheduler
 
 
 logger = logging.getLogger(__name__)
@@ -21,10 +23,10 @@ class BaseSchedulerMeta(type):
     """
     Metaclass to check scheduler classes against the necessary interface
     """
-    def __instancecheck__(cls, instance):
+    def __instancecheck__(cls, instance: MinimalScheduler) -> bool:
         return cls.__subclasscheck__(type(instance))
 
-    def __subclasscheck__(cls, subclass):
+    def __subclasscheck__(cls, subclass: Union[Type[Scheduler], Type[BaseScheduler], Type[SimpleScheduler], Type[MinimalScheduler]]) -> bool:
         return (
             hasattr(subclass, "has_pending_requests") and callable(subclass.has_pending_requests)
             and hasattr(subclass, "enqueue_request") and callable(subclass.enqueue_request)
@@ -184,7 +186,7 @@ class Scheduler(BaseScheduler):
         self.crawler = crawler
 
     @classmethod
-    def from_crawler(cls: Type[SchedulerTV], crawler) -> SchedulerTV:
+    def from_crawler(cls: Type[SchedulerTV], crawler: Crawler) -> SchedulerTV:
         """
         Factory method, initializes the scheduler with arguments taken from the crawl settings
         """
@@ -299,7 +301,7 @@ class Scheduler(BaseScheduler):
             return self.dqs.pop()
         return None
 
-    def _mq(self):
+    def _mq(self) -> Union[ScrapyPriorityQueue, DownloaderAwarePriorityQueue]:
         """ Create a new priority queue instance, with in-memory storage """
         return create_instance(self.pqclass,
                                settings=None,
@@ -307,7 +309,7 @@ class Scheduler(BaseScheduler):
                                downstream_queue_cls=self.mqclass,
                                key='')
 
-    def _dq(self):
+    def _dq(self) -> Union[ScrapyPriorityQueue, DownloaderAwarePriorityQueue]:
         """ Create a new priority queue instance, with disk storage """
         state = self._read_dqs_state(self.dqdir)
         q = create_instance(self.pqclass,

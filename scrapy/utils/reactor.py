@@ -4,9 +4,12 @@ from contextlib import suppress
 from twisted.internet import asyncioreactor, error
 
 from scrapy.utils.misc import load_object
+from scrapy.extensions.telnet import TelnetConsole
+from twisted.internet.tcp import Port
+from typing import Callable, List
 
 
-def listen_tcp(portrange, host, factory):
+def listen_tcp(portrange: List[int], host: str, factory: TelnetConsole) -> Port:
     """Like reactor.listenTCP but tries different ports in a range."""
     from twisted.internet import reactor
     if len(portrange) > 2:
@@ -30,27 +33,27 @@ class CallLaterOnce:
     it hasn't been already scheduled since the last time it ran.
     """
 
-    def __init__(self, func, *a, **kw):
+    def __init__(self, func: Callable, *a, **kw) -> None:
         self._func = func
         self._a = a
         self._kw = kw
         self._call = None
 
-    def schedule(self, delay=0):
+    def schedule(self, delay: int=0) -> None:
         from twisted.internet import reactor
         if self._call is None:
             self._call = reactor.callLater(delay, self)
 
-    def cancel(self):
+    def cancel(self) -> None:
         if self._call:
             self._call.cancel()
 
-    def __call__(self):
+    def __call__(self) -> None:
         self._call = None
         return self._func(*self._a, **self._kw)
 
 
-def install_reactor(reactor_path, event_loop_path=None):
+def install_reactor(reactor_path: str, event_loop_path: None=None) -> None:
     """Installs the :mod:`~twisted.internet.reactor` with the specified
     import path. Also installs the asyncio event loop with the specified import
     path if the asyncio reactor is enabled"""
@@ -72,7 +75,7 @@ def install_reactor(reactor_path, event_loop_path=None):
             installer()
 
 
-def verify_installed_reactor(reactor_path):
+def verify_installed_reactor(reactor_path: str) -> None:
     """Raises :exc:`Exception` if the installed
     :mod:`~twisted.internet.reactor` does not match the specified import
     path."""
@@ -85,6 +88,6 @@ def verify_installed_reactor(reactor_path):
         raise Exception(msg)
 
 
-def is_asyncio_reactor_installed():
+def is_asyncio_reactor_installed() -> bool:
     from twisted.internet import reactor
     return isinstance(reactor, asyncioreactor.AsyncioSelectorReactor)

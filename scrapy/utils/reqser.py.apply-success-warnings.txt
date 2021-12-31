@@ -1,0 +1,2 @@
+/usr/local/lib/python3.6/importlib/__init__.py:126: ScrapyDeprecationWarning: Module scrapy.utils.reqser is deprecated, please use request.to_dict method and/or scrapy.utils.request.request_from_dict instead
+  return _bootstrap._gcd_import(name[level:], package, level)

@@ -5,11 +5,15 @@ from urllib.request import getproxies, proxy_bypass, _parse_proxy
 from scrapy.exceptions import NotConfigured
 from scrapy.utils.httpobj import urlparse_cached
 from scrapy.utils.python import to_bytes
+from scrapy.crawler import Crawler
+from scrapy.http.request import Request
+from scrapy.spiders import Spider
+from typing import Tuple, Union
 
 
 class HttpProxyMiddleware:
 
-    def __init__(self, auth_encoding='latin-1'):
+    def __init__(self, auth_encoding: str='latin-1') -> None:
         self.auth_encoding = auth_encoding
         self.proxies = {}
         for type_, url in getproxies().items():
@@ -21,19 +25,19 @@ class HttpProxyMiddleware:
                 continue
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls, crawler: Crawler) -> HttpProxyMiddleware:
         if not crawler.settings.getbool('HTTPPROXY_ENABLED'):
             raise NotConfigured
         auth_encoding = crawler.settings.get('HTTPPROXY_AUTH_ENCODING')
         return cls(auth_encoding)
 
-    def _basic_auth_header(self, username, password):
+    def _basic_auth_header(self, username: str, password: str) -> bytes:
         user_pass = to_bytes(
             f'{unquote(username)}:{unquote(password)}',
             encoding=self.auth_encoding)
         return base64.b64encode(user_pass)
 
-    def _get_proxy(self, url, orig_type):
+    def _get_proxy(self, url: str, orig_type: str) -> Union[Tuple[bytes, str], Tuple[None, str]]:
         proxy_type, user, password, hostport = _parse_proxy(url)
         proxy_url = urlunparse((proxy_type or orig_type, hostport, '', '', '', ''))
 
@@ -44,7 +48,7 @@ class HttpProxyMiddleware:
 
         return creds, proxy_url
 
-    def process_request(self, request, spider):
+    def process_request(self, request: Request, spider: Spider) -> None:
         # ignore if proxy is already set
         if 'proxy' in request.meta:
             if request.meta['proxy'] is None:
@@ -68,7 +72,7 @@ class HttpProxyMiddleware:
         if scheme in self.proxies:
             self._set_proxy(request, scheme)
 
-    def _set_proxy(self, request, scheme):
+    def _set_proxy(self, request: Request, scheme: str) -> None:
         creds, proxy = self.proxies[scheme]
         request.meta['proxy'] = proxy
         if creds:

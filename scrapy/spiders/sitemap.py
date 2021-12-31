@@ -5,6 +5,10 @@ from scrapy.spiders import Spider
 from scrapy.http import Request, XmlResponse
 from scrapy.utils.sitemap import Sitemap, sitemap_urls_from_robots
 from scrapy.utils.gz import gunzip, gzip_magic_number
+from scrapy.http.request import Request
+from scrapy.http.response import Response
+from scrapy.http.response.text import TextResponse
+from typing import Any, Dict, Iterator, List, Optional, Union
 
 
 logger = logging.getLogger(__name__)
@@ -17,7 +21,7 @@ class SitemapSpider(Spider):
     sitemap_follow = ['']
     sitemap_alternate_links = False
 
-    def __init__(self, *a, **kw):
+    def __init__(self, *a, **kw) -> None:
         super().__init__(*a, **kw)
         self._cbs = []
         for r, c in self.sitemap_rules:
@@ -26,11 +30,11 @@ class SitemapSpider(Spider):
             self._cbs.append((regex(r), c))
         self._follow = [regex(x) for x in self.sitemap_follow]
 
-    def start_requests(self):
+    def start_requests(self) -> None:
         for url in self.sitemap_urls:
             yield Request(url, self._parse_sitemap)
 
-    def sitemap_filter(self, entries):
+    def sitemap_filter(self, entries: Sitemap) -> Iterator[Union[Dict[str, str], Dict[str, Union[str, List[str]]]]]:
         """This method can be used to filter sitemap entries by their
         attributes, for example, you can filter locs with lastmod greater
         than a given date (see docs).
@@ -38,7 +42,7 @@ class SitemapSpider(Spider):
         for entry in entries:
             yield entry
 
-    def _parse_sitemap(self, response):
+    def _parse_sitemap(self, response: TextResponse) -> Iterator[Request]:
         if response.url.endswith('/robots.txt'):
             for url in sitemap_urls_from_robots(response.text, base_url=response.url):
                 yield Request(url, callback=self._parse_sitemap)
@@ -63,7 +67,7 @@ class SitemapSpider(Spider):
                             yield Request(loc, callback=c)
                             break
 
-    def _get_sitemap_body(self, response):
+    def _get_sitemap_body(self, response: Response) -> Optional[bytes]:
         """Return the sitemap body contained in the given response,
         or None if the response is not a sitemap.
         """
@@ -90,7 +94,7 @@ def regex(x):
     return x
 
 
-def iterloc(it, alt=False):
+def iterloc(it: Iterator[Any], alt: bool=False) -> Iterator[str]:
     for d in it:
         yield d['loc']
 

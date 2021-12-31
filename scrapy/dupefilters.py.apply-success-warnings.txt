@@ -1,0 +1,4 @@
+WARNING: Failed decoding trace: Module 'tests.test_dupefilters' has no attribute 'RFPDupeFilterTest.test_request_fingerprint.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_dupefilters' has no attribute 'RFPDupeFilterTest.test_request_fingerprint.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_dupefilters' has no attribute 'RFPDupeFilterTest.test_request_fingerprint.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_dupefilters' has no attribute 'RFPDupeFilterTest.test_request_fingerprint.<locals>'

@@ -7,6 +7,12 @@ from scrapy.http import Response, TextResponse
 from scrapy.responsetypes import responsetypes
 from scrapy.utils.deprecate import ScrapyDeprecationWarning
 from scrapy.utils.gz import gunzip
+from scrapy.crawler import Crawler
+from scrapy.http.request import Request
+from scrapy.http.response import Response
+from scrapy.spiders import Spider
+from scrapy.statscollectors import MemoryStatsCollector
+from typing import Optional
 
 
 ACCEPTED_ENCODINGS = [b'gzip', b'deflate']
@@ -27,11 +33,11 @@ except ImportError:
 class HttpCompressionMiddleware:
     """This middleware allows compressed (gzip, deflate) traffic to be
     sent/received from web sites"""
-    def __init__(self, stats=None):
+    def __init__(self, stats: Optional[MemoryStatsCollector]=None) -> None:
         self.stats = stats
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls, crawler: Crawler) -> HttpCompressionMiddleware:
         if not crawler.settings.getbool('COMPRESSION_ENABLED'):
             raise NotConfigured
         try:
@@ -47,11 +53,11 @@ class HttpCompressionMiddleware:
             result.stats = crawler.stats
             return result
 
-    def process_request(self, request, spider):
+    def process_request(self, request: Request, spider: Spider) -> None:
         request.headers.setdefault('Accept-Encoding',
                                    b", ".join(ACCEPTED_ENCODINGS))
 
-    def process_response(self, request, response, spider):
+    def process_response(self, request: Request, response: Response, spider: Spider) -> Response:
 
         if request.method == 'HEAD':
             return response
@@ -77,7 +83,7 @@ class HttpCompressionMiddleware:
 
         return response
 
-    def _decode(self, body, encoding):
+    def _decode(self, body: bytes, encoding: bytes) -> bytes:
         if encoding == b'gzip' or encoding == b'x-gzip':
             body = gunzip(body)
 

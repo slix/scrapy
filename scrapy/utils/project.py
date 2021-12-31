@@ -13,7 +13,7 @@ ENVVAR = 'SCRAPY_SETTINGS_MODULE'
 DATADIR_CFG_SECTION = 'datadir'
 
 
-def inside_project():
+def inside_project() -> bool:
     scrapy_module = os.environ.get('SCRAPY_SETTINGS_MODULE')
     if scrapy_module is not None:
         try:
@@ -25,7 +25,7 @@ def inside_project():
     return bool(closest_scrapy_cfg())
 
 
-def project_data_dir(project='default'):
+def project_data_dir(project: str='default') -> str:
     """Return the current project data dir, creating it if it doesn't exist"""
     if not inside_project():
         raise NotConfigured("Not inside a project")
@@ -42,7 +42,7 @@ def project_data_dir(project='default'):
     return d
 
 
-def data_path(path, createdir=False):
+def data_path(path: str, createdir: bool=False) -> str:
     """
     Return the given path joined with the .scrapy data directory.
     If given an absolute path, return it unmodified.
@@ -57,7 +57,7 @@ def data_path(path, createdir=False):
     return path
 
 
-def get_project_settings():
+def get_project_settings() -> Settings:
     if ENVVAR not in os.environ:
         project = os.environ.get('SCRAPY_PROJECT', 'default')
         init_env(project)

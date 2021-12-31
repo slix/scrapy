@@ -1,0 +1,29 @@
+  from scrapy.http.request import Request
+  from scrapy.spiders import Spider
+  from typing import (
++     Any,
+      Callable,
+-     Iterable,
++     Dict,
++     List,
+      Optional,
+      Union,
+  )
+
+
+  def request_fingerprint(
+      request: Request,
+-     include_headers: Optional[Iterable[Union[bytes, str]]] = ...,
+?                               ^ ------ -------------     -
++     include_headers: Optional[List[str]] = ...,
+?                               ^^^
+      keep_fragments: bool = ...
+  ) -> str: ...
+
+
+- def request_from_dict(d: dict, *, spider: Optional[Spider] = ...) -> Request: ...
++ def request_from_dict(
++     d: Union[Dict[str, Optional[Union[str, Dict[Any, Any], bytes, Dict[str, str], int, List[Any]]]], Dict[str, Optional[Union[str, Dict[Any, Any], bytes, int, List[Any]]]], Dict[str, Union[str, Dict[bytes, List[bytes]], bytes, Dict[str, str], int, List[str]]], Dict[str, Optional[Union[str, Dict[bytes, List[bytes]], bytes, Dict[Any, Any], int, List[Any], Dict[str, int]]]], Dict[str, Union[str, Dict[Any, Any], bytes, int, List[Any]]]],
++     *,
++     spider = ...
++ ) -> Request: ...

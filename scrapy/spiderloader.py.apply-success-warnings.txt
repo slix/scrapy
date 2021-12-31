@@ -1,0 +1,2 @@
+WARNING: Failed decoding trace: Module 'builtins' has no attribute 'module'
+WARNING: Failed decoding trace: No module named 'test_spiders_xxx.spider1'

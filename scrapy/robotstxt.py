@@ -3,12 +3,14 @@ import logging
 from abc import ABCMeta, abstractmethod
 
 from scrapy.utils.python import to_unicode
+from typing import Optional, Union
+from unittest.mock import MagicMock
 
 
 logger = logging.getLogger(__name__)
 
 
-def decode_robotstxt(robotstxt_body, spider, to_native_str_type=False):
+def decode_robotstxt(robotstxt_body: bytes, spider: Optional[MagicMock], to_native_str_type: bool=False) -> str:
     try:
         if to_native_str_type:
             robotstxt_body = to_unicode(robotstxt_body)
@@ -56,7 +58,7 @@ class RobotParser(metaclass=ABCMeta):
 
 
 class PythonRobotParser(RobotParser):
-    def __init__(self, robotstxt_body, spider):
+    def __init__(self, robotstxt_body: bytes, spider: None) -> None:
         from urllib.robotparser import RobotFileParser
         self.spider = spider
         robotstxt_body = decode_robotstxt(robotstxt_body, spider, to_native_str_type=True)
@@ -64,35 +66,35 @@ class PythonRobotParser(RobotParser):
         self.rp.parse(robotstxt_body.splitlines())
 
     @classmethod
-    def from_crawler(cls, crawler, robotstxt_body):
+    def from_crawler(cls, crawler: None, robotstxt_body: bytes) -> PythonRobotParser:
         spider = None if not crawler else crawler.spider
         o = cls(robotstxt_body, spider)
         return o
 
-    def allowed(self, url, user_agent):
+    def allowed(self, url: str, user_agent: str) -> bool:
         user_agent = to_unicode(user_agent)
         url = to_unicode(url)
         return self.rp.can_fetch(user_agent, url)
 
 
 class ReppyRobotParser(RobotParser):
-    def __init__(self, robotstxt_body, spider):
+    def __init__(self, robotstxt_body: bytes, spider: Optional[MagicMock]) -> None:
         from reppy.robots import Robots
         self.spider = spider
         self.rp = Robots.parse('', robotstxt_body)
 
     @classmethod
-    def from_crawler(cls, crawler, robotstxt_body):
+    def from_crawler(cls, crawler: Optional[MagicMock], robotstxt_body: bytes) -> ReppyRobotParser:
         spider = None if not crawler else crawler.spider
         o = cls(robotstxt_body, spider)
         return o
 
-    def allowed(self, url, user_agent):
+    def allowed(self, url: str, user_agent: Union[bytes, str]) -> bool:
         return self.rp.allowed(url, user_agent)
 
 
 class RerpRobotParser(RobotParser):
-    def __init__(self, robotstxt_body, spider):
+    def __init__(self, robotstxt_body: bytes, spider: Optional[MagicMock]) -> None:
         from robotexclusionrulesparser import RobotExclusionRulesParser
         self.spider = spider
         self.rp = RobotExclusionRulesParser()
@@ -100,31 +102,31 @@ class RerpRobotParser(RobotParser):
         self.rp.parse(robotstxt_body)
 
     @classmethod
-    def from_crawler(cls, crawler, robotstxt_body):
+    def from_crawler(cls, crawler: Optional[MagicMock], robotstxt_body: bytes) -> RerpRobotParser:
         spider = None if not crawler else crawler.spider
         o = cls(robotstxt_body, spider)
         return o
 
-    def allowed(self, url, user_agent):
+    def allowed(self, url: str, user_agent: Union[bytes, str]) -> bool:
         user_agent = to_unicode(user_agent)
         url = to_unicode(url)
         return self.rp.is_allowed(user_agent, url)
 
 
 class ProtegoRobotParser(RobotParser):
-    def __init__(self, robotstxt_body, spider):
+    def __init__(self, robotstxt_body: bytes, spider: Optional[MagicMock]) -> None:
         from protego import Protego
         self.spider = spider
         robotstxt_body = decode_robotstxt(robotstxt_body, spider)
         self.rp = Protego.parse(robotstxt_body)
 
     @classmethod
-    def from_crawler(cls, crawler, robotstxt_body):
+    def from_crawler(cls, crawler: Optional[MagicMock], robotstxt_body: bytes) -> ProtegoRobotParser:
         spider = None if not crawler else crawler.spider
         o = cls(robotstxt_body, spider)
         return o
 
-    def allowed(self, url, user_agent):
+    def allowed(self, url: str, user_agent: Union[bytes, str]) -> bool:
         user_agent = to_unicode(user_agent)
         url = to_unicode(url)
         return self.rp.can_fetch(url, user_agent)

@@ -1,0 +1,124 @@
++ from h2.exceptions import ProtocolError
++ from scrapy.core.downloader.contextfactory import ScrapyClientContextFactory
+  from scrapy.core.http2.protocol import H2ClientProtocol
+  from scrapy.http.request import Request
+  from scrapy.settings import Settings
+  from scrapy.spiders import Spider
+- from twisted.internet.base import ReactorBase
++ from twisted.internet.asyncioreactor import AsyncioSelectorReactor
+  from twisted.internet.defer import Deferred
+- from twisted.internet.endpoints import (
+?                                        ^
++ from twisted.internet.endpoints import _WrapperEndpoint
+?                                        ^^^^^^^^^^^^^^^^
++ from twisted.internet.epollreactor import EPollReactor
++ from twisted.python.failure import Failure
+-     HostnameEndpoint,
+-     _WrapperEndpoint,
+- )
+- from twisted.web.client import (
+?                                ^
++ from twisted.web.client import URI
+?                                ^^^
+-     BrowserLikePolicyForHTTPS,
+-     URI,
+- )
+  from typing import (
+      List,
+      Optional,
+      Tuple,
++     Union,
+  )
+
+
+  class H2Agent:
+      def __init__(
+          self,
+-         reactor: ReactorBase,
++         reactor: Union[AsyncioSelectorReactor, EPollReactor],
+          pool: H2ConnectionPool,
+-         context_factory: BrowserLikePolicyForHTTPS = ...,
++         context_factory: ScrapyClientContextFactory = ...,
+-         connect_timeout: Optional[float] = ...,
++         connect_timeout: Optional[Union[int, float]] = ...,
+?                                   +++++++++++      +
+-         bind_address: Optional[bytes] = ...
+?                       ^^^^  ------ --
++         bind_address: None = ...
+?                       ^
+      ) -> None: ...
+      def get_endpoint(self, uri: URI) -> _WrapperEndpoint: ...
+-     def get_key(self, uri: URI) -> Tuple: ...
++     def get_key(self, uri: URI) -> Tuple[bytes, bytes, int]: ...
+?                                         +++++++++++++++++++
+      def request(
+          self,
+          request: Request,
+          spider: Spider
+      ) -> Deferred: ...
+
+
+  class H2ConnectionPool:
+-     def __init__(self, reactor: ReactorBase, settings: Settings) -> None: ...
++     def __init__(
++         self,
++         reactor: Union[AsyncioSelectorReactor, EPollReactor],
++         settings: Settings
++     ) -> None: ...
+      def _new_connection(
+          self,
+-         key: Tuple,
++         key: Union[Tuple[bytes, bytes, int], Tuple[str, bytes, int]],
+          uri: URI,
+-         endpoint: HostnameEndpoint
+?                   ^^^^^ ^
++         endpoint: _WrapperEndpoint
+?                   ^^^ ^^ +
+      ) -> Deferred: ...
+-     def _remove_connection(self, errors: List[BaseException], key: Tuple) -> None: ...
++     def _remove_connection(
++         self,
++         errors: List[Union[ProtocolError, Failure]],
++         key: Union[Tuple[bytes, bytes, int], Tuple[str, bytes, int]]
++     ) -> None: ...
+      def close_connections(self) -> None: ...
+      def get_connection(
+          self,
+-         key: Tuple,
++         key: Union[Tuple[bytes, bytes, int], Tuple[str, bytes, int]],
+          uri: URI,
+-         endpoint: HostnameEndpoint
+?                   ^^^^^ ^
++         endpoint: _WrapperEndpoint
+?                   ^^^ ^^ +
+      ) -> Deferred: ...
+      def put_connection(
+          self,
+          conn: H2ClientProtocol,
+-         key: Tuple
++         key: Union[Tuple[bytes, bytes, int], Tuple[str, bytes, int]]
+      ) -> H2ClientProtocol: ...
+
+
+  class ScrapyProxyH2Agent:
+      def __init__(
+          self,
+-         reactor: ReactorBase,
++         reactor: Union[AsyncioSelectorReactor, EPollReactor],
+          proxy_uri: URI,
+          pool: H2ConnectionPool,
+-         context_factory: BrowserLikePolicyForHTTPS = ...,
++         context_factory: ScrapyClientContextFactory = ...,
+-         connect_timeout: Optional[float] = ...,
+?                                   ^^^^
++         connect_timeout: Optional[int] = ...,
+?                                   ^^
+-         bind_address: Optional[bytes] = ...
+?                       ^^^^  ------ --
++         bind_address: None = ...
+?                       ^
+      ) -> None: ...
+      def get_endpoint(self, uri: URI) -> _WrapperEndpoint: ...
+-     def get_key(self, uri: URI) -> Tuple: ...
++     def get_key(self, uri: URI) -> Tuple[str, bytes, int]: ...
+?                                         +++++++++++++++++

@@ -1,0 +1,4 @@
+WARNING: Failed decoding trace: No module named 'test_spiders_xxx.spider1'
+WARNING: Failed decoding trace: No module named 'test_spiders_xxx.spider2'
+WARNING: Failed decoding trace: Module 'tests.test_utils_url' has no attribute 'UrlUtilsTest.test_url_is_from_spider_class_attributes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_utils_url' has no attribute 'UrlUtilsTest.test_url_is_from_spider_with_allowed_domains_class_attributes.<locals>'

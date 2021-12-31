@@ -2,8 +2,8 @@
 Base class for Scrapy commands
 """
 import os
-from optparse import OptionGroup
-from typing import Any, Dict
+from optparse import OptionParser, Values, OptionGroup
+from typing import List, Any, Dict
 
 from twisted.python import failure
 
@@ -21,7 +21,7 @@ class ScrapyCommand:
 
     exitcode = 0
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.settings = None  # set in scrapy.cmdline
 
     def set_crawler(self, crawler):
@@ -55,7 +55,7 @@ class ScrapyCommand:
         """
         return self.long_desc()
 
-    def add_options(self, parser):
+    def add_options(self, parser: OptionParser) -> None:
         """
         Populate option parse with options available for this command
         """
@@ -76,7 +76,7 @@ class ScrapyCommand:
 
         parser.add_option_group(group)
 
-    def process_options(self, args, opts):
+    def process_options(self, args: List[str], opts: Values) -> None:
         try:
             self.settings.setdict(arglist_to_dict(opts.set),
                                   priority='cmdline')

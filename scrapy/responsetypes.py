@@ -9,6 +9,8 @@ from io import StringIO
 from scrapy.http import Response
 from scrapy.utils.misc import load_object
 from scrapy.utils.python import binary_is_text, to_bytes, to_unicode
+from scrapy.http.headers import Headers
+from typing import Dict, Optional, Type, Union
 
 
 class ResponseTypes:
@@ -30,7 +32,7 @@ class ResponseTypes:
         'text/*': 'scrapy.http.TextResponse',
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.classes = {}
         self.mimetypes = MimeTypes()
         mimedata = get_data('scrapy', 'mime.types').decode('utf8')
@@ -38,7 +40,7 @@ class ResponseTypes:
         for mimetype, cls in self.CLASSES.items():
             self.classes[mimetype] = load_object(cls)
 
-    def from_mimetype(self, mimetype):
+    def from_mimetype(self, mimetype: str) -> Union[Type[TextResponse], Type[Response], Type[html.HtmlResponse], Type[xml.XmlResponse]]:
         """Return the most appropriate Response class for the given mimetype"""
         if mimetype is None:
             return Response
@@ -48,7 +50,7 @@ class ResponseTypes:
             basetype = f"{mimetype.split('/')[0]}/*"
             return self.classes.get(basetype, Response)
 
-    def from_content_type(self, content_type, content_encoding=None):
+    def from_content_type(self, content_type: Union[bytes, str], content_encoding: Optional[bytes]=None) -> Union[Type[HtmlResponse], Type[Response], Type[xml.XmlResponse], Type[text.TextResponse]]:
         """Return the most appropriate Response class from an HTTP Content-Type
         header """
         if content_encoding:
@@ -56,7 +58,7 @@ class ResponseTypes:
         mimetype = to_unicode(content_type).split(';')[0].strip().lower()
         return self.from_mimetype(mimetype)
 
-    def from_content_disposition(self, content_disposition):
+    def from_content_disposition(self, content_disposition: bytes) -> Union[Type[HtmlResponse], Type[Response], Type[xml.XmlResponse], Type[text.TextResponse]]:
         try:
             filename = to_unicode(
                 content_disposition, encoding='latin-1', errors='replace'
@@ -65,7 +67,7 @@ class ResponseTypes:
         except IndexError:
             return Response
 
-    def from_headers(self, headers):
+    def from_headers(self, headers: Union[Dict[str, str], Headers]) -> Union[Type[HtmlResponse], Type[Response], Type[text.TextResponse]]:
         """Return the most appropriate Response class by looking at the HTTP
         headers"""
         cls = Response
@@ -78,7 +80,7 @@ class ResponseTypes:
             cls = self.from_content_disposition(headers[b'Content-Disposition'])
         return cls
 
-    def from_filename(self, filename):
+    def from_filename(self, filename: str) -> Union[Type[HtmlResponse], Type[Response], Type[xml.XmlResponse], Type[text.TextResponse]]:
         """Return the most appropriate Response class from a file name"""
         mimetype, encoding = self.mimetypes.guess_type(filename)
         if mimetype and not encoding:
@@ -86,7 +88,7 @@ class ResponseTypes:
         else:
             return Response
 
-    def from_body(self, body):
+    def from_body(self, body: bytes) -> Union[Type[HtmlResponse], Type[TextResponse], Type[Response], Type[xml.XmlResponse]]:
         """Try to guess the appropriate response based on the body content.
         This method is a bit magic and could be improved in the future, but
         it's not meant to be used except for special cases where response types
@@ -102,7 +104,7 @@ class ResponseTypes:
         else:
             return self.from_mimetype('text')
 
-    def from_args(self, headers=None, url=None, filename=None, body=None):
+    def from_args(self, headers: Optional[Union[Dict[str, str], Headers]]=None, url: Optional[str]=None, filename: Optional[str]=None, body: Optional[bytes]=None) -> Union[Type[HtmlResponse], Type[Response], Type[xml.XmlResponse], Type[text.TextResponse]]:
         """Guess the most appropriate Response class based on
         the given arguments."""
         cls = Response

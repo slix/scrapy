@@ -4,9 +4,10 @@ from functools import wraps
 from twisted.internet import defer, threads
 
 from scrapy.exceptions import ScrapyDeprecationWarning
+from typing import Callable, Optional, Union
 
 
-def deprecated(use_instead=None):
+def deprecated(use_instead: Optional[Union[str, Callable]]=None) -> Callable:
     """This is a decorator which can be used to mark functions
     as deprecated. It will result in a warning being emitted
     when the function is used."""
@@ -27,7 +28,7 @@ def deprecated(use_instead=None):
     return deco
 
 
-def defers(func):
+def defers(func: Callable) -> Callable:
     """Decorator to make sure a function always returns a deferred"""
     @wraps(func)
     def wrapped(*a, **kw):

@@ -1,0 +1,4 @@
+WARNING: Failed decoding trace: Module 'tests.test_utils_serialize' has no attribute 'JsonEncoderTestCase.test_encode_attrs_item.<locals>'
+WARNING: Failed decoding trace: Module 'types' has no attribute 'TestDataClass'
+WARNING: Failed decoding trace: Module 'types' has no attribute 'TestDataClass'
+WARNING: Failed decoding trace: Module 'types' has no attribute 'TestDataClass'

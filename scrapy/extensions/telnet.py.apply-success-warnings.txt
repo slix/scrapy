@@ -1,0 +1,2 @@
+WARNING: Failed decoding trace: Module 'scrapy.extensions.telnet' has no attribute 'TelnetConsole.protocol.<locals>'
+WARNING: Failed decoding trace: Module 'scrapy.extensions.telnet' has no attribute 'TelnetConsole.protocol.<locals>'

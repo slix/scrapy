@@ -15,13 +15,14 @@ from scrapy import signals
 from scrapy.exceptions import NotConfigured
 from scrapy.mail import MailSender
 from scrapy.utils.engine import get_engine_status
+from scrapy.crawler import Crawler
 
 logger = logging.getLogger(__name__)
 
 
 class MemoryUsage:
 
-    def __init__(self, crawler):
+    def __init__(self, crawler: Crawler) -> None:
         if not crawler.settings.getbool('MEMUSAGE_ENABLED'):
             raise NotConfigured
         try:
@@ -41,17 +42,17 @@ class MemoryUsage:
         crawler.signals.connect(self.engine_stopped, signal=signals.engine_stopped)
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls, crawler: Crawler) -> MemoryUsage:
         return cls(crawler)
 
-    def get_virtual_size(self):
+    def get_virtual_size(self) -> int:
         size = self.resource.getrusage(self.resource.RUSAGE_SELF).ru_maxrss
         if sys.platform != 'darwin':
             # on macOS ru_maxrss is in bytes, on Linux it is in KB
             size *= 1024
         return size
 
-    def engine_started(self):
+    def engine_started(self) -> None:
         self.crawler.stats.set_value('memusage/startup', self.get_virtual_size())
         self.tasks = []
         tsk = task.LoopingCall(self.update)
@@ -66,12 +67,12 @@ class MemoryUsage:
             self.tasks.append(tsk)
             tsk.start(self.check_interval, now=True)
 
-    def engine_stopped(self):
+    def engine_stopped(self) -> None:
         for tsk in self.tasks:
             if tsk.running:
                 tsk.stop()
 
-    def update(self):
+    def update(self) -> None:
         self.crawler.stats.max_value('memusage/max', self.get_virtual_size())
 
     def _check_limit(self):

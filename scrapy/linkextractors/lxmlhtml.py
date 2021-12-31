@@ -14,6 +14,11 @@ from scrapy.linkextractors import FilteringLinkExtractor
 from scrapy.utils.misc import arg_to_iter, rel_has_nofollow
 from scrapy.utils.python import unique as unique_list
 from scrapy.utils.response import get_base_url
+from lxml.etree import _Element
+from lxml.html import HtmlElement
+from scrapy.http.response.text import TextResponse
+from scrapy.selector.unified import Selector
+from typing import Any, Callable, Iterator, List, Optional, Tuple, Union
 
 
 # from lxml/src/lxml/html/__init__.py
@@ -22,25 +27,25 @@ XHTML_NAMESPACE = "http://www.w3.org/1999/xhtml"
 _collect_string_content = etree.XPath("string()")
 
 
-def _nons(tag):
+def _nons(tag: str) -> str:
     if isinstance(tag, str):
         if tag[0] == '{' and tag[1:len(XHTML_NAMESPACE) + 1] == XHTML_NAMESPACE:
             return tag.split('}')[-1]
     return tag
 
 
-def _identity(x):
+def _identity(x: str) -> str:
     return x
 
 
-def _canonicalize_link_url(link):
+def _canonicalize_link_url(link: Link) -> str:
     return canonicalize_url(link.url, keep_fragments=True)
 
 
 class LxmlParserLinkExtractor:
     def __init__(
-        self, tag="a", attr="href", process=None, unique=False, strip=True, canonicalized=False
-    ):
+        self, tag: partial="a", attr: partial="href", process: Optional[Callable]=None, unique: bool=False, strip: bool=True, canonicalized: bool=False
+    ) -> None:
         self.scan_tag = tag if callable(tag) else partial(operator.eq, tag)
         self.scan_attr = attr if callable(attr) else partial(operator.eq, attr)
         self.process_attr = process if callable(process) else _identity
@@ -48,7 +53,7 @@ class LxmlParserLinkExtractor:
         self.strip = strip
         self.link_key = operator.attrgetter("url") if canonicalized else _canonicalize_link_url
 
-    def _iter_links(self, document):
+    def _iter_links(self, document: _Element) -> Iterator[Union[Tuple[HtmlElement, str, str], Tuple[_Element, str, str]]]:
         for el in document.iter(etree.Element):
             if not self.scan_tag(_nons(el.tag)):
                 continue
@@ -58,7 +63,7 @@ class LxmlParserLinkExtractor:
                     continue
                 yield (el, attrib, attribs[attrib])
 
-    def _extract_links(self, selector, response_url, response_encoding, base_url):
+    def _extract_links(self, selector: Selector, response_url: str, response_encoding: str, base_url: str) -> List[Union[Any, Link]]:
         links = []
         # hacky way to get the underlying lxml parsed document
         for el, attr, attr_val in self._iter_links(selector.root):
@@ -85,14 +90,14 @@ class LxmlParserLinkExtractor:
         base_url = get_base_url(response)
         return self._extract_links(response.selector, response.url, response.encoding, base_url)
 
-    def _process_links(self, links):
+    def _process_links(self, links: List[Union[Any, Link]]) -> List[Union[Any, Link]]:
         """ Normalize and filter extracted links
 
         The subclass should override it if necessary
         """
         return self._deduplicate_if_needed(links)
 
-    def _deduplicate_if_needed(self, links):
+    def _deduplicate_if_needed(self, links: List[Union[Any, Link]]) -> List[Union[Any, Link]]:
         if self.unique:
             return unique_list(links, key=self.link_key)
         return links
@@ -102,21 +107,21 @@ class LxmlLinkExtractor(FilteringLinkExtractor):
 
     def __init__(
         self,
-        allow=(),
-        deny=(),
-        allow_domains=(),
-        deny_domains=(),
-        restrict_xpaths=(),
-        tags=('a', 'area'),
-        attrs=('href',),
-        canonicalize=False,
-        unique=True,
-        process_value=None,
-        deny_extensions=None,
-        restrict_css=(),
-        strip=True,
-        restrict_text=None,
-    ):
+        allow: Union[Tuple[()], List[str], str, Tuple[str]]=(),
+        deny: Union[Tuple[()], List[str], str, Tuple[str]]=(),
+        allow_domains: Union[Tuple[()], List[str], str, Tuple[str]]=(),
+        deny_domains: Union[Tuple[()], List[str], str, Tuple[str]]=(),
+        restrict_xpaths: Union[Tuple[()], str, Tuple[str]]=(),
+        tags: Optional[Union[Tuple[str], Tuple[str, str], str, Tuple[str, str, str]]]=('a', 'area'),
+        attrs: Optional[Union[Tuple[str, str], str, Tuple[str]]]=('href',),
+        canonicalize: bool=False,
+        unique: bool=True,
+        process_value: Optional[Callable]=None,
+        deny_extensions: Optional[Union[Tuple[()], List[str]]]=None,
+        restrict_css: Union[Tuple[()], Tuple[str]]=(),
+        strip: bool=True,
+        restrict_text: Optional[Union[List[str], str]]=None,
+    ) -> None:
         tags, attrs = set(arg_to_iter(tags)), set(arg_to_iter(attrs))
         lx = LxmlParserLinkExtractor(
             tag=partial(operator.contains, tags),
@@ -139,7 +144,7 @@ class LxmlLinkExtractor(FilteringLinkExtractor):
             restrict_text=restrict_text,
         )
 
-    def extract_links(self, response):
+    def extract_links(self, response: TextResponse) -> List[Union[Any, Link]]:
         """Returns a list of :class:`~scrapy.link.Link` objects from the
         specified :class:`response <scrapy.http.Response>`.
 

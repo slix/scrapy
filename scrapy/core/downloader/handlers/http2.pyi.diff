@@ -1,0 +1,85 @@
+  from scrapy.core.downloader.contextfactory import ScrapyClientContextFactory
+  from scrapy.core.http2.agent import (
+      H2Agent,
+      H2ConnectionPool,
+  )
+  from scrapy.crawler import Crawler
+  from scrapy.http.request import Request
+- from scrapy.http.response import Response
++ from scrapy.http.response.text import TextResponse
+?                          +++++        ++++
+  from scrapy.settings import Settings
+  from scrapy.spiders import Spider
+  from twisted.internet.base import DelayedCall
+  from twisted.internet.defer import Deferred
++ from twisted.python.failure import Failure
+  from typing import (
+      Optional,
+      Type,
++     Union,
+  )
+
+
+  class H2DownloadHandler:
+      def __init__(self, settings: Settings, crawler: Optional[Crawler] = ...) -> None: ...
+      def close(self) -> None: ...
+      def download_request(
+          self,
+          request: Request,
+          spider: Spider
+      ) -> Deferred: ...
+      @classmethod
+      def from_crawler(
+          cls: Type[~H2DownloadHandlerOrSubclass],
+          crawler: Crawler
+-     ) -> H2DownloadHandlerOrSubclass: ...
+?                           ----------
++     ) -> H2DownloadHandler: ...
+
+
+  class ScrapyH2Agent:
+      def __init__(
+          self,
+          context_factory: ScrapyClientContextFactory,
+          pool: H2ConnectionPool,
+          connect_timeout: int = ...,
+-         bind_address: Optional[bytes] = ...,
+?                       ^^^^  ------ --
++         bind_address: None = ...,
+?                       ^
+          crawler: Optional[Crawler] = ...
+      ) -> None: ...
+      @staticmethod
+      def _cb_latency(
+-         response: Response,
++         response: TextResponse,
+?                   ++++
+          request: Request,
+          start_time: float
+-     ) -> Response: ...
++     ) -> TextResponse: ...
+?          ++++
+      @staticmethod
+      def _cb_timeout(
+-         response: Response,
++         response: Union[Failure, TextResponse],
+          request: Request,
+-         timeout: float,
++         timeout: Union[int, float],
+?                  +++++++++++     +
+          timeout_cl: DelayedCall
+-     ) -> Response: ...
++     ) -> Union[Failure, TextResponse]: ...
+      def _get_agent(
+          self,
+          request: Request,
+-         timeout: Optional[float]
+?                  ^^^   --
++         timeout: Union[int, float]
+?                  ^^    +++++
+      ) -> H2Agent: ...
+      def download_request(
+          self,
+          request: Request,
+          spider: Spider
+      ) -> Deferred: ...

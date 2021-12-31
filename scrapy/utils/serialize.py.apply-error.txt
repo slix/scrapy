@@ -1,0 +1,6 @@
+WARNING: Failed decoding trace: Module 'tests.test_utils_serialize' has no attribute 'JsonEncoderTestCase.test_encode_attrs_item.<locals>'
+WARNING: Failed decoding trace: Module 'types' has no attribute 'TestDataClass'
+WARNING: Failed decoding trace: Module 'types' has no attribute 'TestDataClass'
+WARNING: Failed decoding trace: Module 'types' has no attribute 'TestDataClass'
+ERROR: Failed applying stub with libcst:
+Could not resolve a unique qualified name for type datetime at 23:91. Candidate names were: ['datetime.datetime', 'datetime.date.time']

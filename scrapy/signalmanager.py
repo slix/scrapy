@@ -1,13 +1,17 @@
 from pydispatch import dispatcher
 from scrapy.utils import signal as _signal
+from scrapy.crawler import Crawler
+from twisted.internet.defer import DeferredList
+from twisted.python.failure import Failure
+from typing import Any, Callable, List, Tuple, Union
 
 
 class SignalManager:
 
-    def __init__(self, sender=dispatcher.Anonymous):
+    def __init__(self, sender: Crawler=dispatcher.Anonymous) -> None:
         self.sender = sender
 
-    def connect(self, receiver, signal, **kwargs):
+    def connect(self, receiver: Callable, signal: object, **kwargs) -> None:
         """
         Connect a receiver function to a signal.
 
@@ -33,7 +37,8 @@ class SignalManager:
         kwargs.setdefault('sender', self.sender)
         return dispatcher.disconnect(receiver, signal, **kwargs)
 
-    def send_catch_log(self, signal, **kwargs):
+    def send_catch_log(self, signal: object, **kwargs
+    ) -> List[Union[Tuple[Callable, None], Tuple[Callable, Failure], Any]]:
         """
         Send a signal, catch exceptions and log them.
 
@@ -43,7 +48,7 @@ class SignalManager:
         kwargs.setdefault('sender', self.sender)
         return _signal.send_catch_log(signal, **kwargs)
 
-    def send_catch_log_deferred(self, signal, **kwargs):
+    def send_catch_log_deferred(self, signal: object, **kwargs) -> DeferredList:
         """
         Like :meth:`send_catch_log` but supports returning
         :class:`~twisted.internet.defer.Deferred` objects from signal handlers.

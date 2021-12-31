@@ -5,10 +5,11 @@ from http.cookies import SimpleCookie
 from urllib.parse import urlparse
 
 from w3lib.http import basic_auth_header
+from typing import Any, Dict, List, Tuple, Union
 
 
 class CurlParser(argparse.ArgumentParser):
-    def error(self, message):
+    def error(self, message: str):
         error_msg = f'There was an error parsing the curl command: {message}'
         raise ValueError(error_msg)
 
@@ -34,7 +35,7 @@ for argument in safe_to_ignore_arguments:
     curl_parser.add_argument(*argument, action='store_true')
 
 
-def _parse_headers_and_cookies(parsed_args):
+def _parse_headers_and_cookies(parsed_args: Namespace) -> Union[Tuple[List[Union[Tuple[str, str], Tuple[str, bytes]]], Dict[Any, Any]], Tuple[List[Any], Dict[Any, Any]], Tuple[List[Tuple[str, str]], Dict[str, str]], Tuple[List[Tuple[str, bytes]], Dict[Any, Any]]]:
     headers = []
     cookies = {}
     for header in parsed_args.headers or ():

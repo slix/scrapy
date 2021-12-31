@@ -9,6 +9,7 @@ import gc
 from scrapy import signals
 from scrapy.exceptions import NotConfigured
 from scrapy.utils.trackref import live_refs
+from scrapy.crawler import Crawler
 
 
 class MemoryDebugger:
@@ -17,7 +18,7 @@ class MemoryDebugger:
         self.stats = stats
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls, crawler: Crawler):
         if not crawler.settings.getbool('MEMDEBUG_ENABLED'):
             raise NotConfigured
         o = cls(crawler.stats)

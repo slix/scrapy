@@ -1,0 +1,1 @@
+WARNING: Failed decoding trace: Module 'tests.test_http_request' has no attribute 'RequestTest.test_copy_inherited_classes.<locals>'

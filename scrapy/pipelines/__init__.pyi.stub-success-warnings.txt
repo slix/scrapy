@@ -1,0 +1,6 @@
+WARNING: Failed decoding trace: Module 'tests.test_feedexport' has no attribute 'FeedExportTestBase.exported_data.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_feedexport' has no attribute 'FeedExportTestBase.exported_data.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_feedexport' has no attribute 'MyItem'
+WARNING: Failed decoding trace: Module 'tests.test_feedexport' has no attribute 'MyItem'
+WARNING: Failed decoding trace: Module 'tests.test_feedexport' has no attribute 'MyItem2'
+WARNING: Failed decoding trace: Module 'types' has no attribute 'TestDataClass'

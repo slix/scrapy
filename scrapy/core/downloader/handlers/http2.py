@@ -8,7 +8,7 @@ from twisted.internet.defer import Deferred
 from twisted.internet.error import TimeoutError
 from twisted.web.client import URI
 
-from scrapy.core.downloader.contextfactory import load_context_factory_from_settings
+from scrapy.core.downloader.contextfactory import ScrapyClientContextFactory, load_context_factory_from_settings
 from scrapy.core.downloader.webclient import _parse
 from scrapy.core.http2.agent import H2Agent, H2ConnectionPool, ScrapyProxyH2Agent
 from scrapy.crawler import Crawler
@@ -16,13 +16,15 @@ from scrapy.http import Request, Response
 from scrapy.settings import Settings
 from scrapy.spiders import Spider
 from scrapy.utils.python import to_bytes
+from scrapy.http.request import Request
+from scrapy.http.response import Response
 
 
 H2DownloadHandlerOrSubclass = TypeVar("H2DownloadHandlerOrSubclass", bound="H2DownloadHandler")
 
 
 class H2DownloadHandler:
-    def __init__(self, settings: Settings, crawler: Optional[Crawler] = None):
+    def __init__(self, settings: Settings, crawler: Optional[Crawler] = None) -> None:
         self._crawler = crawler
 
         from twisted.internet import reactor
@@ -50,7 +52,7 @@ class ScrapyH2Agent:
     _ProxyAgent = ScrapyProxyH2Agent
 
     def __init__(
-        self, context_factory,
+        self, context_factory: ScrapyClientContextFactory,
         pool: H2ConnectionPool,
         connect_timeout: int = 10,
         bind_address: Optional[bytes] = None,

@@ -28,6 +28,8 @@ from scrapy.core.http2.stream import Stream, StreamCloseReason
 from scrapy.http import Request
 from scrapy.settings import Settings
 from scrapy.spiders import Spider
+from scrapy.http.request import Request
+from twisted.internet.address import IPv4Address
 
 
 logger = logging.getLogger(__name__)
@@ -411,7 +413,7 @@ class H2ClientFactory(Factory):
         self.settings = settings
         self.conn_lost_deferred = conn_lost_deferred
 
-    def buildProtocol(self, addr) -> H2ClientProtocol:
+    def buildProtocol(self, addr: IPv4Address) -> H2ClientProtocol:
         return H2ClientProtocol(self.uri, self.settings, self.conn_lost_deferred)
 
     def acceptableProtocols(self) -> List[bytes]:

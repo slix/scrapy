@@ -1,0 +1,8 @@
+WARNING: Failed decoding trace: Module 'tests.test_spider' has no attribute 'XMLFeedSpiderTest.test_register_namespace.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_spider' has no attribute 'XMLFeedSpiderTest.test_register_namespace.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_spider' has no attribute 'XMLFeedSpiderTest.test_register_namespace.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_spider' has no attribute 'XMLFeedSpiderTest.test_register_namespace.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_spider' has no attribute 'XMLFeedSpiderTest.test_register_namespace.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_spider' has no attribute 'XMLFeedSpiderTest.test_register_namespace.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_spider' has no attribute 'XMLFeedSpiderTest.test_register_namespace.<locals>'
+No traces found for module scrapy.spiders.feed

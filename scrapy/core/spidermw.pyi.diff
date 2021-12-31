@@ -1,0 +1,137 @@
+  from scrapy.http.request import Request
+  from scrapy.http.response import Response
++ from scrapy.item import Item
+  from scrapy.settings import Settings
+  from scrapy.spidermiddlewares.depth import DepthMiddleware
+  from scrapy.spidermiddlewares.httperror import HttpErrorMiddleware
+  from scrapy.spidermiddlewares.offsite import OffsiteMiddleware
+  from scrapy.spidermiddlewares.referer import RefererMiddleware
+  from scrapy.spidermiddlewares.urllength import UrlLengthMiddleware
+  from scrapy.spiders import Spider
+  from scrapy.utils.python import MutableChain
+- from tests.test_request_cb_kwargs import InjectArgumentsSpiderMiddleware
++ from tests.spiders import (
++     BytesReceivedCallbackSpider,
++     CrawlSpiderWithParseMethod,
++     DelaySpider,
++     DuplicateStartRequestsSpider,
++     FollowAllSpider,
++     HeadersReceivedCallbackSpider,
++     SimpleSpider,
++     SingleRequestSpider,
++ )
++ from tests.test_engine import (
++     AttrsItem,
++     TestItem,
++     TestSpider,
++ )
++ from tests.test_pipelines import ItemSpider
++ from tests.test_request_cb_kwargs import (
++     InjectArgumentsSpiderMiddleware,
++     KeywordArgumentsSpider,
++ )
++ from tests.test_request_left import SignalCatcherSpider
++ from tests.test_scheduler import StartUrlsSpider
++ from tests.test_scheduler_base import TestSpider
++ from tests.test_signals import ItemSpider
++ from tests.test_spidermiddleware_httperror import _HttpErrorSpider
+  from tests.test_spidermiddleware_output_chain import (
+      FailProcessSpiderInputMiddleware,
++     GeneratorCallbackSpider,
+      GeneratorDoNothingAfterFailureMiddleware,
+      GeneratorDoNothingAfterRecoveryMiddleware,
+      GeneratorFailMiddleware,
++     GeneratorOutputChainSpider,
+      GeneratorRecoverMiddleware,
+      LogExceptionMiddleware,
++     NotGeneratorCallbackSpider,
+      NotGeneratorDoNothingAfterFailureMiddleware,
+      NotGeneratorDoNothingAfterRecoveryMiddleware,
+      NotGeneratorFailMiddleware,
+      NotGeneratorRecoverMiddleware,
++     ProcessSpiderInputSpiderWithoutErrback,
+      RecoveryMiddleware,
++     RecoverySpider,
+  )
+  from twisted.internet.defer import Deferred
+  from twisted.python.failure import Failure
+  from typing import (
+      Any,
+      Callable,
+      Dict,
+-     Generator,
+-     Iterable,
+      Iterator,
+      List,
+      Optional,
+      Type,
+      Union,
+  )
++ from unittest.mock import MagicMock
+
+
+  class SpiderMiddlewareManager:
+      def _add_middleware(
+          self,
+          mw: Union[RecoveryMiddleware, InjectArgumentsSpiderMiddleware, FailProcessSpiderInputMiddleware, LogExceptionMiddleware, GeneratorDoNothingAfterRecoveryMiddleware, OffsiteMiddleware, NotGeneratorDoNothingAfterRecoveryMiddleware, GeneratorRecoverMiddleware, HttpErrorMiddleware, NotGeneratorRecoverMiddleware, GeneratorDoNothingAfterFailureMiddleware, UrlLengthMiddleware, NotGeneratorDoNothingAfterFailureMiddleware, GeneratorFailMiddleware, DepthMiddleware, RefererMiddleware, NotGeneratorFailMiddleware]
+      ) -> None: ...
+      def _evaluate_iterable(
+          self,
+          response: Response,
+          spider: Spider,
+-         iterable: Iterable,
++         iterable: Union[MagicMock, Iterator[Any], List[Dict[str, List[str]]], List[Request], List[Dict[str, str]], List[TestItem], List[Dict[str, int]], List[Any], List[AttrsItem], List[Union[Dict[str, int], Request]]],
+          exception_processor_index: int,
+          recover_to: MutableChain
+-     ) -> Generator: ...
++     ) -> Iterator[Union[Dict[str, int], Request, Dict[str, str], Dict[str, List[Union[Any, str]]], AttrsItem, Item, Dict[Any, Any], Dict[str, List[str]]]]: ...
+      @classmethod
+      def _get_mwlist_from_settings(
+          cls,
+          settings: Settings
+      ) -> List[Union[Any, Type[GeneratorDoNothingAfterRecoveryMiddleware], Type[GeneratorRecoverMiddleware], Type[GeneratorDoNothingAfterFailureMiddleware], Type[GeneratorFailMiddleware], str, Type[LogExceptionMiddleware], Type[FailProcessSpiderInputMiddleware], Type[InjectArgumentsSpiderMiddleware], Type[RecoveryMiddleware], Type[NotGeneratorDoNothingAfterRecoveryMiddleware], Type[NotGeneratorRecoverMiddleware], Type[NotGeneratorDoNothingAfterFailureMiddleware], Type[NotGeneratorFailMiddleware]]]: ...
+      def _process_callback_output(
+          self,
+          response: Response,
+          spider: Spider,
+-         result: Iterable
++         result: Union[MagicMock, Iterator[Any], List[Dict[str, List[str]]], List[Request], List[Dict[str, str]], List[TestItem], List[Dict[str, int]], List[Any], List[AttrsItem], List[Union[Dict[str, int], Request]]]
+      ) -> MutableChain: ...
+      def _process_spider_exception(
+          self,
+          response: Response,
+          spider: Spider,
+          _failure: Failure,
+          start_index: int = ...
+      ) -> Union[Failure, MutableChain]: ...
+      def _process_spider_input(
+          self,
+-         scrape_func: Callable[[Union[Response, Failure], Request, Spider], Any],
++         scrape_func: Callable,
+          response: Response,
+          request: Request,
+          spider: Spider
+-     ) -> Any: ...
++     ) -> Union[MagicMock, Deferred]: ...
+      def _process_spider_output(
+          self,
+          response: Response,
+          spider: Spider,
+-         result: Iterable,
++         result: Union[List[Union[Dict[str, str], Request]], Iterator[Any], List[Any], List[Dict[str, List[str]]]],
+          start_index: int = ...
+      ) -> MutableChain: ...
+      def process_start_requests(
+          self,
+          start_requests: Union[Iterator[Any], List[Any]],
+-         spider: Spider
++         spider: Union[ItemSpider, HeadersReceivedCallbackSpider, DuplicateStartRequestsSpider, DelaySpider, NotGeneratorCallbackSpider, TestSpider, GeneratorCallbackSpider, _HttpErrorSpider, ProcessSpiderInputSpiderWithoutErrback, StartUrlsSpider, SignalCatcherSpider, RecoverySpider, KeywordArgumentsSpider, GeneratorOutputChainSpider, ItemSpider, BytesReceivedCallbackSpider, CrawlSpiderWithParseMethod, SingleRequestSpider, SimpleSpider, TestSpider, FollowAllSpider]
+      ) -> Deferred: ...
+      def scrape_response(
+          self,
+-         scrape_func: Callable[[Union[Response, Failure], Request, Spider], Any],
++         scrape_func: Callable,
+          response: Response,
+          request: Request,
+          spider: Spider
+      ) -> Deferred: ...

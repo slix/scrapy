@@ -1,0 +1,49 @@
+- from logging import Logger
+  from scrapy.core.downloader.handlers.http11 import TunnelError
+  from scrapy.crawler import Crawler
+  from scrapy.exceptions import (
+      StopDownload,
+      _InvalidOutput,
+  )
+  from scrapy.http.request import Request
+  from scrapy.http.response import Response
+  from scrapy.settings import Settings
+  from scrapy.spiders import Spider
+  from twisted.internet.defer import (
+      CancelledError,
+      TimeoutError,
+  )
+  from twisted.internet.error import (
+      ConnectError,
+      ConnectionDone,
+      ConnectionLost,
+      DNSLookupError,
+  )
+  from twisted.web._newclient import ResponseFailed
+  from typing import (
+      Optional,
+      Union,
+  )
+
+
+  def get_retry_request(
+      request: Request,
+      *,
+-     spider: Spider,
+?      --------
++     spider,
+-     reason: Union[str, Exception] = ...,
++     reason = ...,
+-     max_retry_times: Optional[int] = ...,
+?                    ---------------
++     max_retry_times = ...,
+-     priority_adjust: Optional[int] = ...,
+?                    ---------------
++     priority_adjust = ...,
+-     logger: Logger = ...,
+?           --------
++     logger = ...,
+-     stats_base_key: str = ...
+?                   -----
++     stats_base_key = ...
+  ) -> Optional[Request]: ...

@@ -16,6 +16,8 @@ from twisted.internet import defer, ssl
 
 from scrapy.utils.misc import arg_to_iter
 from scrapy.utils.python import to_bytes
+from scrapy.settings import Settings
+from typing import Callable, List, Optional, Tuple, Union
 
 
 logger = logging.getLogger(__name__)
@@ -26,7 +28,7 @@ logger = logging.getLogger(__name__)
 COMMASPACE = ", "
 
 
-def _to_bytes_or_none(text):
+def _to_bytes_or_none(text: None) -> None:
     if text is None:
         return None
     return to_bytes(text)
@@ -34,9 +36,9 @@ def _to_bytes_or_none(text):
 
 class MailSender:
     def __init__(
-        self, smtphost='localhost', mailfrom='scrapy@localhost', smtpuser=None,
-        smtppass=None, smtpport=25, smtptls=False, smtpssl=False, debug=False
-    ):
+        self, smtphost: str='localhost', mailfrom: str='scrapy@localhost', smtpuser: None=None,
+        smtppass: None=None, smtpport: int=25, smtptls: bool=False, smtpssl: bool=False, debug: bool=False
+    ) -> None:
         self.smtphost = smtphost
         self.smtpport = smtpport
         self.smtpuser = _to_bytes_or_none(smtpuser)
@@ -47,7 +49,7 @@ class MailSender:
         self.debug = debug
 
     @classmethod
-    def from_settings(cls, settings):
+    def from_settings(cls, settings: Settings) -> MailSender:
         return cls(
             smtphost=settings['MAIL_HOST'],
             mailfrom=settings['MAIL_FROM'],
@@ -58,7 +60,7 @@ class MailSender:
             smtpssl=settings.getbool('MAIL_SSL'),
         )
 
-    def send(self, to, subject, body, cc=None, attachs=(), mimetype='text/plain', charset=None, _callback=None):
+    def send(self, to: Union[List[str], str], subject: str, body: str, cc: Optional[str]=None, attachs: Union[List[Tuple[str, str, BytesIO]], Tuple[()]]=(), mimetype: str='text/plain', charset: Optional[str]=None, _callback: Optional[Callable]=None) -> None:
         from twisted.internet import reactor
         if attachs:
             msg = MIMEMultipart()

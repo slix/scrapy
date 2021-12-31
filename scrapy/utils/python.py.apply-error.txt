@@ -1,0 +1,50 @@
+WARNING: Failed decoding trace: Module 'tests.test_feedexport' has no attribute 'MyItem'
+WARNING: Failed decoding trace: Module 'tests.test_feedexport' has no attribute 'MyItem2'
+WARNING: Failed decoding trace: Module 'types' has no attribute 'TestDataClass'
+WARNING: Failed decoding trace: Module 'tests.test_utils_python' has no attribute 'UtilsPythonTestCase.test_weakkeycache.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_utils_python' has no attribute 'UtilsPythonTestCase.test_equal_attributes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_utils_python' has no attribute 'UtilsPythonTestCase.test_equal_attributes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_utils_python' has no attribute 'UtilsPythonTestCase.test_equal_attributes.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_feedexport' has no attribute 'BatchDeliveriesTest.test_s3_export.<locals>'
+WARNING: Failed decoding trace: Module 'tests.test_utils_python' has no attribute 'UtilsPythonTestCase.test_get_func_args.<locals>'
+WARNING: Failed decoding trace: Module 'builtins' has no attribute 'method-wrapper'
+WARNING: Failed decoding trace: Module 'builtins' has no attribute 'method_descriptor'
+WARNING: Failed decoding trace: Module 'builtins' has no attribute 'wrapper_descriptor'
+WARNING: Failed decoding trace: Module 'tests.test_utils_python' has no attribute 'UtilsPythonTestCase.test_get_func_args.<locals>'
+WARNING: Failed decoding trace: Module 'scrapy.utils.python' has no attribute 'Test'
+WARNING: Failed decoding trace: Module 'types' has no attribute 'TestDataClass'
+WARNING: Failed decoding trace: Module 'types' has no attribute 'TestDataClass'
+WARNING: Failed decoding trace: Module '_sre' has no attribute 'SRE_Pattern'
+WARNING: Failed decoding trace: Module '_sre' has no attribute 'SRE_Pattern'
+WARNING: Failed decoding trace: Module 'builtins' has no attribute 'module'
+WARNING: Failed decoding trace: Module 'tests.test_feedexport' has no attribute 'BatchDeliveriesTest.test_s3_export.<locals>'
+Traceback (most recent call last):
+  File "/usr/local/bin/monkeytype", line 8, in <module>
+    sys.exit(entry_point_main())
+  File "/usr/local/lib/python3.6/site-packages/monkeytype/cli.py", line 396, in entry_point_main
+    sys.exit(main(sys.argv[1:], sys.stdout, sys.stderr))
+  File "/usr/local/lib/python3.6/site-packages/monkeytype/cli.py", line 381, in main
+    handler(args, stdout, stderr)
+  File "/usr/local/lib/python3.6/site-packages/monkeytype/cli.py", line 161, in apply_stub_handler
+    stub = get_stub(args, stdout, stderr)
+  File "/usr/local/lib/python3.6/site-packages/monkeytype/cli.py", line 130, in get_stub
+    rewriter=rewriter,
+  File "/usr/local/lib/python3.6/site-packages/monkeytype/stubs.py", line 817, in build_module_stubs_from_traces
+    defn = get_updated_definition(func, traces, max_typed_dict_size, rewriter, existing_annotation_strategy)
+  File "/usr/local/lib/python3.6/site-packages/monkeytype/stubs.py", line 760, in get_updated_definition
+    arg_types, return_type, yield_type = shrink_traced_types(traces, max_typed_dict_size)
+  File "/usr/local/lib/python3.6/site-packages/monkeytype/stubs.py", line 236, in shrink_traced_types
+    shrunken_arg_types = {name: shrink_types(ts, max_typed_dict_size) for name, ts in arg_types.items()}
+  File "/usr/local/lib/python3.6/site-packages/monkeytype/stubs.py", line 236, in <dictcomp>
+    shrunken_arg_types = {name: shrink_types(ts, max_typed_dict_size) for name, ts in arg_types.items()}
+  File "/usr/local/lib/python3.6/site-packages/monkeytype/typing.py", line 133, in shrink_types
+    annotation = shrink_types((getattr(typ, '__args__')[0] for typ in types), max_typed_dict_size)
+  File "/usr/local/lib/python3.6/site-packages/monkeytype/typing.py", line 132, in shrink_types
+    if all(is_list(typ) for typ in types):
+  File "/usr/local/lib/python3.6/site-packages/monkeytype/typing.py", line 132, in <genexpr>
+    if all(is_list(typ) for typ in types):
+  File "/usr/local/lib/python3.6/site-packages/monkeytype/typing.py", line 54, in is_list
+    return is_generic(typ) and name_of_generic(typ) == 'List'
+  File "/usr/local/lib/python3.6/site-packages/monkeytype/compat.py", line 93, in name_of_generic
+    return typ.__name__
+AttributeError: '_Union' object has no attribute '__name__'

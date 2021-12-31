@@ -7,12 +7,13 @@ from operator import itemgetter
 
 from scrapy.exceptions import ScrapyDeprecationWarning, UsageError
 
-from scrapy.settings import BaseSettings
+from scrapy.settings import Settings, BaseSettings
 from scrapy.utils.deprecate import update_classpath
 from scrapy.utils.python import without_none_values
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
 
-def build_component_list(compdict, custom=None, convert=update_classpath):
+def build_component_list(compdict: Optional[Union[Dict[Any, Any], Dict[str, Optional[Union[int, float]]], Dict[str, Optional[int]], BaseSettings, Dict[str, int]]], custom: Optional[Union[Dict[str, str], Dict[str, Optional[int]], List[str], Dict[str, List[int]], Dict[str, Dict[str, Union[str, int]]], Dict[str, int]]]=None, convert: Callable=update_classpath) -> List[Union[Type[SimplePipeline], Type[AsyncDefPipeline], str, Type[ProcessResponseMiddleware], Type[AsyncDefNotAsyncioPipeline], Type[AsyncDefAsyncioPipeline], Type[GeneratorDoNothingAfterRecoveryMiddleware], Type[GeneratorRecoverMiddleware], Type[GeneratorDoNothingAfterFailureMiddleware], Type[GeneratorFailMiddleware], Type[LogExceptionMiddleware], Type[FailProcessSpiderInputMiddleware], Type[AlternativeCallbacksMiddleware], Type[RaiseExceptionRequestMiddleware], Type[CatchExceptionOverrideRequestMiddleware], Type[CatchExceptionDoNotOverrideRequestMiddleware], Type[InjectArgumentsSpiderMiddleware], Type[NotGeneratorDoNothingAfterRecoveryMiddleware], Type[NotGeneratorRecoverMiddleware], Type[NotGeneratorDoNothingAfterFailureMiddleware], Type[NotGeneratorFailMiddleware], Type[DropSomeItemsPipeline], Any, Type[InjectArgumentsDownloaderMiddleware], Type[RecoveryMiddleware], Type[DeferredPipeline]]]:
     """Compose a component list from a { class: order } dictionary."""
 
     def _check_components(complist):
@@ -58,14 +59,14 @@ def build_component_list(compdict, custom=None, convert=update_classpath):
     return [k for k, v in sorted(compdict.items(), key=itemgetter(1))]
 
 
-def arglist_to_dict(arglist):
+def arglist_to_dict(arglist: List[str]) -> Dict[str, str]:
     """Convert a list of arguments like ['arg1=val1', 'arg2=val2', ...] to a
     dict
     """
     return dict(x.split('=', 1) for x in arglist)
 
 
-def closest_scrapy_cfg(path='.', prevpath=None):
+def closest_scrapy_cfg(path: str='.', prevpath: Optional[str]=None) -> str:
     """Return the path to the closest scrapy.cfg file by traversing the current
     directory and its parents
     """
@@ -78,7 +79,7 @@ def closest_scrapy_cfg(path='.', prevpath=None):
     return closest_scrapy_cfg(os.path.dirname(path), path)
 
 
-def init_env(project='default', set_syspath=True):
+def init_env(project: str='default', set_syspath: bool=True) -> None:
     """Initialize environment to use command-line tool from inside a project
     dir. This sets the Scrapy settings module and modifies the Python path to
     be able to locate the project module.
@@ -93,7 +94,7 @@ def init_env(project='default', set_syspath=True):
             sys.path.append(projdir)
 
 
-def get_config(use_closest=True):
+def get_config(use_closest: bool=True) -> ConfigParser:
     """Get Scrapy config file as a ConfigParser"""
     sources = get_sources(use_closest)
     cfg = ConfigParser()
@@ -101,7 +102,7 @@ def get_config(use_closest=True):
     return cfg
 
 
-def get_sources(use_closest=True):
+def get_sources(use_closest: bool=True) -> List[str]:
     xdg_config_home = os.environ.get('XDG_CONFIG_HOME') or os.path.expanduser('~/.config')
     sources = [
         '/etc/scrapy.cfg',
@@ -114,7 +115,7 @@ def get_sources(use_closest=True):
     return sources
 
 
-def feed_complete_default_values_from_settings(feed, settings):
+def feed_complete_default_values_from_settings(feed: Union[Dict[str, Union[str, List[Type[FeedPostProcessedExportsTest.MyPlugin1]], bytes]], Dict[str, Optional[str]], Dict[str, Union[str, List[Union[Type[FeedPostProcessedExportsTest.MyPlugin1], str]], bytes]], Dict[str, Optional[Union[str, int]]], Dict[str, str], Dict[Any, Any], Dict[str, Union[str, Dict[str, bool]]], Dict[str, Union[str, List[str], int]], Dict[str, Union[str, List[Type[FeedPostProcessedExportsTest.MyPlugin1]]]], Dict[str, Union[str, List[str]]], Dict[str, Union[str, int]], Dict[str, Optional[Union[str, List[str]]]], Dict[str, Union[str, List[str], List[Dict[str, int]]]]], settings: Settings) -> Union[Dict[str, Optional[Union[str, Dict[str, bool], int]]], Dict[str, Optional[Union[str, List[Type[FeedPostProcessedExportsTest.MyPlugin1]], int, Dict[Any, Any]]]], Dict[str, Optional[Union[str, List[Union[Type[FeedPostProcessedExportsTest.MyPlugin1], str]], bytes, int, Dict[Any, Any]]]], Dict[str, Optional[Union[str, List[str], List[Dict[str, int]], int, Dict[Any, Any]]]], Dict[str, Optional[Union[str, List[str], int, Dict[Any, Any]]]], Dict[str, Optional[Union[str, List[Type[FeedPostProcessedExportsTest.MyPlugin1]], bytes, int, Dict[Any, Any]]]], Dict[str, Optional[Union[str, int, Dict[Any, Any]]]], Dict[str, Union[int, str, List[str], Tuple[int, int, int, int], Dict[Any, Any]]], Dict[str, Optional[Union[int, Dict[Any, Any]]]]]:
     out = feed.copy()
     out.setdefault("batch_item_count", settings.getint('FEED_EXPORT_BATCH_ITEM_COUNT'))
     out.setdefault("encoding", settings["FEED_EXPORT_ENCODING"])
@@ -129,8 +130,8 @@ def feed_complete_default_values_from_settings(feed, settings):
     return out
 
 
-def feed_process_params_from_cli(settings, output, output_format=None,
-                                 overwrite_output=None):
+def feed_process_params_from_cli(settings: Settings, output: List[Union[Any, str]], output_format: Optional[str]=None,
+                                 overwrite_output: Optional[List[str]]=None) -> Union[Dict[str, Dict[str, Union[str, bool]]], Dict[str, Dict[str, str]]]:
     """
     Receives feed export params (from the 'crawl' or 'runspider' commands),
     checks for inconsistencies in their quantities and returns a dictionary

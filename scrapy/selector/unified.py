@@ -6,18 +6,23 @@ from parsel import Selector as _ParselSelector
 from scrapy.utils.trackref import object_ref
 from scrapy.utils.python import to_bytes
 from scrapy.http import HtmlResponse, XmlResponse
+from lxml.etree import _Element
+from scrapy.http.response import Response
+from scrapy.http.response.html import HtmlResponse
+from scrapy.http.response.xml import XmlResponse
+from typing import Optional, Union
 
 
 __all__ = ['Selector', 'SelectorList']
 
 
-def _st(response, st):
+def _st(response: Optional[Response], st: Optional[str]) -> str:
     if st is None:
         return 'xml' if isinstance(response, XmlResponse) else 'html'
     return st
 
 
-def _response_from_text(text, st):
+def _response_from_text(text: str, st: str) -> Union[HtmlResponse, XmlResponse]:
     rt = XmlResponse if st == 'xml' else HtmlResponse
     return rt(url='about:blank', encoding='utf-8',
               body=to_bytes(text, 'utf-8'))
@@ -64,7 +69,8 @@ class Selector(_ParselSelector, object_ref):
     __slots__ = ['response']
     selectorlist_cls = SelectorList
 
-    def __init__(self, response=None, text=None, type=None, root=None, **kwargs):
+    def __init__(self, response: Optional[Response]=None, text: Optional[str]=None, type: Optional[str]=None, root: Optional[Union[float, _Element, str]]=None, **kwargs
+    ) -> None:
         if response is not None and text is not None:
             raise ValueError(f'{self.__class__.__name__}.__init__() received '
                              'both response and text')

@@ -1,8 +1,9 @@
 from functools import wraps
 from collections import OrderedDict
+from typing import Any, Callable, Dict, List, Optional
 
 
-def _embed_ipython_shell(namespace={}, banner=''):
+def _embed_ipython_shell(namespace: Dict[Any, Any]={}, banner: str='') -> Callable:
     """Start an IPython Shell"""
     try:
         from IPython.terminal.embed import InteractiveShellEmbed
@@ -25,7 +26,7 @@ def _embed_ipython_shell(namespace={}, banner=''):
     return wrapper
 
 
-def _embed_bpython_shell(namespace={}, banner=''):
+def _embed_bpython_shell(namespace: Dict[Any, Any]={}, banner: str='') -> Callable:
     """Start a bpython shell"""
     import bpython
 
@@ -35,7 +36,7 @@ def _embed_bpython_shell(namespace={}, banner=''):
     return wrapper
 
 
-def _embed_ptpython_shell(namespace={}, banner=''):
+def _embed_ptpython_shell(namespace: Dict[Any, Any]={}, banner: str=''):
     """Start a ptpython shell"""
     import ptpython.repl
 
@@ -46,7 +47,7 @@ def _embed_ptpython_shell(namespace={}, banner=''):
     return wrapper
 
 
-def _embed_standard_shell(namespace={}, banner=''):
+def _embed_standard_shell(namespace: Dict[Any, Any]={}, banner: str='') -> Callable:
     """Start a standard python shell"""
     import code
     try:  # readline module is only available on unix systems
@@ -71,7 +72,7 @@ DEFAULT_PYTHON_SHELLS = OrderedDict([
 ])
 
 
-def get_shell_embed_func(shells=None, known_shells=None):
+def get_shell_embed_func(shells: Optional[List[str]]=None, known_shells: None=None) -> Optional[Callable]:
     """Return the first acceptable shell-embed function
     from a given list of shell names.
     """

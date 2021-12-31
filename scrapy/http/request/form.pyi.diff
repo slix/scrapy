@@ -1,0 +1,107 @@
+  from lxml.html import (
+      FormElement,
+-     HtmlElement,
+?     ^ --
++     InputElement,
+?     ^^^^
++     MultipleSelectOptions,
+      SelectElement,
++     TextareaElement,
+  )
+- from scrapy.http.response.text import TextResponse
+?                            ^^^        ^^^
++ from scrapy.http.response.html import HtmlResponse
+?                           + ^^        ^ ++
+  from typing import (
+      Any,
+-     Iterable,
++     Dict,
+      List,
+      Optional,
+      Tuple,
+      Type,
+      Union,
+  )
+
+
+- def _get_clickable(clickdata: Optional[dict], form: FormElement) -> Optional[Tuple[str, str]]: ...
++ def _get_clickable(
++     clickdata: Optional[Union[Dict[str, str], Dict[str, int]]],
++     form: FormElement
++ ) -> Optional[Tuple[str, str]]: ...
+
+
+  def _get_form(
+-     response: TextResponse,
+?               ^^^
++     response: HtmlResponse,
+?               ^ ++
+      formname: Optional[str],
+      formid: Optional[str],
+-     formnumber: Optional[int],
+?                 ---------   -
++     formnumber: int,
+      formxpath: Optional[str]
+  ) -> FormElement: ...
+
+
+  def _get_inputs(
+      form: FormElement,
+-     formdata: Optional[Union[dict, List[Tuple[str, str]]]],
++     formdata: Optional[Union[Dict[str, Union[str, List[str]]], Dict[str, str], Tuple[Tuple[str, str], Tuple[str, str]], Dict[str, None]]],
+      dont_click: bool,
+-     clickdata: Optional[dict]
+- ) -> List[Tuple[str, str]]: ...
++     clickdata: Optional[Union[Dict[str, str], Dict[str, int]]]
++ ) -> List[Union[Tuple[str, str], Any, Tuple[str, List[str]], Tuple[str, List[Any]]]]: ...
+
+
+  def _select_value(
+      ele: SelectElement,
+-     n: str,
+-     v: str
++     n: Optional[str],
++     v: Optional[Union[MultipleSelectOptions, str]]
+  ) -> Union[Tuple[str, List[str]], Tuple[str, List[Any]], Tuple[None, None], Tuple[str, str], Tuple[None, str]]: ...
+
+
+- def _urlencode(seq: Iterable, enc: str) -> str: ...
++ def _urlencode(
++     seq: Union[List[Tuple[str, str]], Tuple[Tuple[str, str], Tuple[str, str], Tuple[str, str]], List[Union[Tuple[str, str], Tuple[str, List[str]]]], List[Union[Tuple[str, str], Tuple[str, List[str]], Tuple[str, List[Any]]]]],
++     enc: str
++ ) -> str: ...
+
+
+  def _value(
+-     ele: HtmlElement
++     ele: Union[TextareaElement, InputElement, SelectElement]
+  ) -> Union[Tuple[str, List[str]], Tuple[str, List[Any]], Tuple[str, str], Tuple[None, None], Tuple[str, None], Tuple[None, str]]: ...
+
+
+  class FormRequest:
+-     def __init__(self, *args, formdata: Optional[Union[dict, List[Tuple[str, str]]]] = ..., **kwargs) -> None: ...
+?                                       ----------------------------------------------
++     def __init__(self, *args, formdata = ..., **kwargs) -> None: ...
+      @classmethod
+      def from_response(
+          cls: Type[~FormRequestTypeVar],
+-         response: TextResponse,
+?                   ^^^
++         response: HtmlResponse,
+?                   ^ ++
+          formname: Optional[str] = ...,
+          formid: Optional[str] = ...,
+-         formnumber: Optional[int] = ...,
+?                     ---------   -
++         formnumber: int = ...,
+-         formdata: Optional[Union[dict, List[Tuple[str, str]]]] = ...,
+-         clickdata: Optional[dict] = ...,
++         formdata: Optional[Union[Dict[str, Union[str, List[str]]], Dict[str, str], Tuple[Tuple[str, str], Tuple[str, str]], Dict[str, None]]] = ...,
++         clickdata: Optional[Union[Dict[str, str], Dict[str, int]]] = ...,
+          dont_click: bool = ...,
+          formxpath: Optional[str] = ...,
+          formcss: Optional[str] = ...,
+          **kwargs
+-     ) -> FormRequestTypeVar: ...
+?                     -------
++     ) -> FormRequest: ...

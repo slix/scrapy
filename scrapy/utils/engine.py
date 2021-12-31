@@ -2,9 +2,11 @@
 
 # used in global tests code
 from time import time  # noqa: F401
+from scrapy.core.engine import ExecutionEngine
+from typing import List, Optional, Tuple, Union
 
 
-def get_engine_status(engine):
+def get_engine_status(engine: ExecutionEngine) -> List[Union[Tuple[str, float], Tuple[str, int], Tuple[str, bool], Tuple[str, str], Tuple[str, None]]]:
     """Return a report of the current engine status"""
     tests = [
         "time()-engine.start_time",
@@ -33,7 +35,7 @@ def get_engine_status(engine):
     return checks
 
 
-def format_engine_status(engine=None):
+def format_engine_status(engine: Optional[ExecutionEngine]=None) -> str:
     checks = get_engine_status(engine)
     s = "Execution engine status\n\n"
     for test, result in checks:

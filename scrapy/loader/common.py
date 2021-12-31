@@ -5,9 +5,10 @@ import warnings
 from itemloaders import common
 
 from scrapy.utils.deprecate import ScrapyDeprecationWarning
+from typing import Any, Callable, Dict
 
 
-def wrap_loader_context(function, context):
+def wrap_loader_context(function: Callable, context: Dict[Any, Any]) -> Callable:
     """Wrap functions that receive loader_context to contain the context
     "pre-loaded" and expose a interface that receives only one argument
     """

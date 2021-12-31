@@ -7,7 +7,7 @@ import functools
 import hashlib
 from contextlib import suppress
 from io import BytesIO
-from typing import Dict, Tuple
+from typing import Any, Callable, Iterator, List, Optional, Union, Dict, Tuple
 
 from itemadapter import ItemAdapter
 
@@ -18,6 +18,13 @@ from scrapy.pipelines.files import FileException, FilesPipeline
 from scrapy.settings import Settings
 from scrapy.utils.misc import md5sum
 from scrapy.utils.python import to_bytes
+from PIL.Image import Image
+from PIL.JpegImagePlugin import JpegImageFile
+from scrapy.http.request import Request
+from scrapy.http.response import Response
+from scrapy.pipelines.media.MediaPipeline import SpiderInfo
+from tests.test_pipeline_images import ImagesPipelineTestAttrsItem, ImagesPipelineTestItem
+from twisted.python.failure import Failure
 
 
 class NoimagesDrop(DropItem):
@@ -44,7 +51,7 @@ class ImagesPipeline(FilesPipeline):
     DEFAULT_IMAGES_URLS_FIELD = 'image_urls'
     DEFAULT_IMAGES_RESULT_FIELD = 'images'
 
-    def __init__(self, store_uri, download_func=None, settings=None):
+    def __init__(self, store_uri: str, download_func: Optional[Callable]=None, settings: Optional[Settings]=None) -> None:
         try:
             from PIL import Image
             self._Image = Image
@@ -89,7 +96,7 @@ class ImagesPipeline(FilesPipeline):
         )
 
     @classmethod
-    def from_settings(cls, settings):
+    def from_settings(cls, settings: Settings) -> ImagesPipeline:
         s3store = cls.STORE_SCHEMES['s3']
         s3store.AWS_ACCESS_KEY_ID = settings['AWS_ACCESS_KEY_ID']
         s3store.AWS_SECRET_ACCESS_KEY = settings['AWS_SECRET_ACCESS_KEY']
@@ -112,10 +119,12 @@ class ImagesPipeline(FilesPipeline):
         store_uri = settings['IMAGES_STORE']
         return cls(store_uri, settings=settings)
 
-    def file_downloaded(self, response, request, info, *, item=None):
+    def file_downloaded(self, response: Response, request: Request, info: SpiderInfo, *,
+        item=None) -> Optional[str]:
         return self.image_downloaded(response, request, info, item=item)
 
-    def image_downloaded(self, response, request, info, *, item=None):
+    def image_downloaded(self, response: Response, request: Request, info: SpiderInfo, *,
+        item=None) -> Optional[str]:
         checksum = None
         for path, image, buf in self.get_images(response, request, info, item=item):
             if checksum is None:
@@ -128,7 +137,8 @@ class ImagesPipeline(FilesPipeline):
                 headers={'Content-Type': 'image/jpeg'})
         return checksum
 
-    def get_images(self, response, request, info, *, item=None):
+    def get_images(self, response: Response, request: Request, info: SpiderInfo, *,
+        item=None) -> Iterator[Tuple[str, Image, BytesIO]]:
         path = self.file_path(request, response=response, info=info, item=item)
         orig_image = self._Image.open(BytesIO(response.body))
 
@@ -146,7 +156,7 @@ class ImagesPipeline(FilesPipeline):
             thumb_image, thumb_buf = self.convert_image(image, size)
             yield thumb_path, thumb_image, thumb_buf
 
-    def convert_image(self, image, size=None):
+    def convert_image(self, image: Image, size: Optional[Tuple[int, int]]=None) -> Union[Tuple[JpegImageFile, BytesIO], Tuple[Image, BytesIO]]:
         if image.format == 'PNG' and image.mode == 'RGBA':
             background = self._Image.new('RGBA', image.size, (255, 255, 255))
             background.paste(image, image)
@@ -167,19 +177,20 @@ class ImagesPipeline(FilesPipeline):
         image.save(buf, 'JPEG')
         return image, buf
 
-    def get_media_requests(self, item, info):
+    def get_media_requests(self, item: Union[ImagesPipelineTestItem, Dict[str, Union[str, List[str]]], ImagesPipelineTestAttrsItem, Dict[str, List[Union[Any, str]]]], info: Optional[SpiderInfo]) -> List[Request]:
         urls = ItemAdapter(item).get(self.images_urls_field, [])
         return [Request(u) for u in urls]
 
-    def item_completed(self, results, item, info):
+    def item_completed(self, results: List[Union[Tuple[bool, Dict[str, Optional[str]]], Tuple[bool, Failure], Tuple[bool, Dict[str, str]]]], item: Union[Dict[str, Union[str, List[str]]], ImagesPipelineTestItem, Dict[str, List[Union[Any, str]]], ImagesPipelineTestAttrsItem], info: Optional[SpiderInfo]) -> Union[Dict[str, List[Union[Any, str]]], Dict[str, List[Union[str, Dict[str, Optional[str]]]]], ImagesPipelineTestAttrsItem, Dict[str, List[Union[Dict[str, str], str]]], ImagesPipelineTestItem, Dict[str, Union[str, List[str], List[Dict[str, str]]]]]:
         with suppress(KeyError):
             ItemAdapter(item)[self.images_result_field] = [x for ok, x in results if ok]
         return item
 
-    def file_path(self, request, response=None, info=None, *, item=None):
+    def file_path(self, request: Request, response: Optional[Response]=None, info: object=None, *,
+        item=None) -> str:
         image_guid = hashlib.sha1(to_bytes(request.url)).hexdigest()
         return f'full/{image_guid}.jpg'
 
-    def thumb_path(self, request, thumb_id, response=None, info=None):
+    def thumb_path(self, request: Request, thumb_id: str, response: Optional[Response]=None, info: object=None) -> str:
         thumb_guid = hashlib.sha1(to_bytes(request.url)).hexdigest()
         return f'thumbs/{thumb_id}/{thumb_guid}.jpg'

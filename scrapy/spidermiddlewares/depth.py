@@ -7,27 +7,33 @@ See documentation in docs/topics/spider-middleware.rst
 import logging
 
 from scrapy.http import Request
+from scrapy.crawler import Crawler
+from scrapy.http.request import Request
+from scrapy.http.response import Response
+from scrapy.spiders import Spider
+from scrapy.statscollectors import StatsCollector
+from typing import Any, Iterator, List, Union
 
 logger = logging.getLogger(__name__)
 
 
 class DepthMiddleware:
 
-    def __init__(self, maxdepth, stats, verbose_stats=False, prio=1):
+    def __init__(self, maxdepth: int, stats: StatsCollector, verbose_stats: bool=False, prio: int=1) -> None:
         self.maxdepth = maxdepth
         self.stats = stats
         self.verbose_stats = verbose_stats
         self.prio = prio
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls, crawler: Crawler) -> DepthMiddleware:
         settings = crawler.settings
         maxdepth = settings.getint('DEPTH_LIMIT')
         verbose = settings.getbool('DEPTH_STATS_VERBOSE')
         prio = settings.getint('DEPTH_PRIORITY')
         return cls(maxdepth, crawler.stats, verbose, prio)
 
-    def process_spider_output(self, response, result, spider):
+    def process_spider_output(self, response: Response, result: Union[Iterator[Any], List[Request]], spider: Spider) -> Iterator[Any]:
         def _filter(request):
             if isinstance(request, Request):
                 depth = response.meta['depth'] + 1

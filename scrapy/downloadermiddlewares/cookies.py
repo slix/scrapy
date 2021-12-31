@@ -5,6 +5,12 @@ from scrapy.exceptions import NotConfigured
 from scrapy.http import Response
 from scrapy.http.cookies import CookieJar
 from scrapy.utils.python import to_unicode
+from http.cookiejar import Cookie
+from scrapy.crawler import Crawler
+from scrapy.http.request import Request
+from scrapy.http.response import Response
+from scrapy.spiders import Spider
+from typing import Any, Dict, List, Optional, Union
 
 
 logger = logging.getLogger(__name__)
@@ -13,17 +19,17 @@ logger = logging.getLogger(__name__)
 class CookiesMiddleware:
     """This middleware enables working with sites that need cookies"""
 
-    def __init__(self, debug=False):
+    def __init__(self, debug: bool=False) -> None:
         self.jars = defaultdict(CookieJar)
         self.debug = debug
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls, crawler: Crawler) -> CookiesMiddleware:
         if not crawler.settings.getbool('COOKIES_ENABLED'):
             raise NotConfigured
         return cls(crawler.settings.getbool('COOKIES_DEBUG'))
 
-    def process_request(self, request, spider):
+    def process_request(self, request: Request, spider: Optional[Spider]) -> None:
         if request.meta.get('dont_merge_cookies', False):
             return
 
@@ -37,7 +43,7 @@ class CookiesMiddleware:
         jar.add_cookie_header(request)
         self._debug_cookie(request, spider)
 
-    def process_response(self, request, response, spider):
+    def process_response(self, request: Request, response: Response, spider: Optional[Spider]) -> Response:
         if request.meta.get('dont_merge_cookies', False):
             return response
 
@@ -49,7 +55,7 @@ class CookiesMiddleware:
 
         return response
 
-    def _debug_cookie(self, request, spider):
+    def _debug_cookie(self, request: Request, spider: Optional[Spider]) -> None:
         if self.debug:
             cl = [to_unicode(c, errors='replace')
                   for c in request.headers.getlist('Cookie')]
@@ -58,7 +64,7 @@ class CookiesMiddleware:
                 msg = f"Sending cookies to: {request}\n{cookies}"
                 logger.debug(msg, extra={'spider': spider})
 
-    def _debug_set_cookie(self, response, spider):
+    def _debug_set_cookie(self, response: Response, spider: Optional[Spider]) -> None:
         if self.debug:
             cl = [to_unicode(c, errors='replace')
                   for c in response.headers.getlist('Set-Cookie')]
@@ -67,7 +73,7 @@ class CookiesMiddleware:
                 msg = f"Received cookies from: {response}\n{cookies}"
                 logger.debug(msg, extra={'spider': spider})
 
-    def _format_cookie(self, cookie, request):
+    def _format_cookie(self, cookie: Union[Dict[str, str], Dict[str, Union[float, str]], Dict[str, Union[bytes, str]], Dict[str, Union[str, int]], Dict[str, Optional[str]], Dict[str, Union[str, bool]]], request: Request) -> Optional[str]:
         """
         Given a dict consisting of cookie components, return its string representation.
         Decode from bytes if necessary.
@@ -95,7 +101,7 @@ class CookiesMiddleware:
             cookie_str += f"; {key.capitalize()}={value}"
         return cookie_str
 
-    def _get_request_cookies(self, jar, request):
+    def _get_request_cookies(self, jar: CookieJar, request: Request) -> List[Union[Any, Cookie]]:
         """
         Extract cookies from the Request.cookies attribute
         """

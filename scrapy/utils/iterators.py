@@ -6,12 +6,16 @@ from io import StringIO
 from scrapy.http import TextResponse, Response
 from scrapy.selector import Selector
 from scrapy.utils.python import re_rsearch, to_unicode
+from scrapy.http.response import Response
+from scrapy.http.response.xml import XmlResponse
+from scrapy.selector.unified import Selector
+from typing import Dict, Iterator, List, Optional, Union
 
 
 logger = logging.getLogger(__name__)
 
 
-def xmliter(obj, nodename):
+def xmliter(obj: Union[XmlResponse, int, str], nodename: str) -> Iterator[Selector]:
     """Return a iterator of Selector's over all nodes of a XML document,
        given the name of the node to iterate. Useful for parsing XML feeds.
 
@@ -53,7 +57,7 @@ def xmliter(obj, nodename):
         yield Selector(text=nodetext, type='xml')
 
 
-def xmliter_lxml(obj, nodename, namespace=None, prefix='x'):
+def xmliter_lxml(obj: Union[XmlResponse, int, str], nodename: str, namespace: None=None, prefix: str='x') -> Iterator[Selector]:
     from lxml import etree
     reader = _StreamReader(obj)
     tag = f'{{{namespace}}}{nodename}' if namespace else nodename
@@ -70,7 +74,7 @@ def xmliter_lxml(obj, nodename, namespace=None, prefix='x'):
 
 class _StreamReader:
 
-    def __init__(self, obj):
+    def __init__(self, obj: Union[XmlResponse, int, str]) -> None:
         self._ptr = 0
         if isinstance(obj, Response):
             self._text, self.encoding = obj.body, obj.encoding
@@ -78,22 +82,22 @@ class _StreamReader:
             self._text, self.encoding = obj, 'utf-8'
         self._is_unicode = isinstance(self._text, str)
 
-    def read(self, n=65535):
+    def read(self, n: int=65535) -> bytes:
         self.read = self._read_unicode if self._is_unicode else self._read_string
         return self.read(n).lstrip()
 
-    def _read_string(self, n=65535):
+    def _read_string(self, n: int=65535) -> bytes:
         s, e = self._ptr, self._ptr + n
         self._ptr = e
         return self._text[s:e]
 
-    def _read_unicode(self, n=65535):
+    def _read_unicode(self, n: int=65535) -> bytes:
         s, e = self._ptr, self._ptr + n
         self._ptr = e
         return self._text[s:e].encode('utf-8')
 
 
-def csviter(obj, delimiter=None, headers=None, encoding=None, quotechar=None):
+def csviter(obj: Response, delimiter: Optional[str]=None, headers: Optional[List[str]]=None, encoding: None=None, quotechar: Optional[str]=None) -> Iterator[Dict[str, str]]:
     """ Returns an iterator of dictionaries from the given csv object
 
     obj can be:
@@ -142,7 +146,7 @@ def csviter(obj, delimiter=None, headers=None, encoding=None, quotechar=None):
             yield dict(zip(headers, row))
 
 
-def _body_or_str(obj, unicode=True):
+def _body_or_str(obj: Union[Response, bytes, int, str], unicode: bool=True) -> Union[bytes, str]:
     expected_types = (Response, str, bytes)
     if not isinstance(obj, expected_types):
         expected_types_str = " or ".join(t.__name__ for t in expected_types)

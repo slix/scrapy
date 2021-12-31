@@ -1,0 +1,76 @@
+  from h2.events import (
+      DataReceived,
+-     Event,
++     RemoteSettingsChanged,
+      ResponseReceived,
+      SettingsAcknowledged,
+      StreamEnded,
+      WindowUpdated,
+  )
++ from h2.exceptions import ProtocolError
+  from scrapy.core.http2.stream import Stream
+  from scrapy.http.request import Request
+  from scrapy.settings import Settings
+  from scrapy.spiders import Spider
+  from twisted.internet.address import IPv4Address
+  from twisted.internet.defer import Deferred
++ from twisted.internet.error import TimeoutError
+  from twisted.python.failure import Failure
+  from twisted.web.client import URI
+- from typing import List
+?                    ^^^^
++ from typing import (
+?                    ^
++     Any,
++     List,
++     Union,
++ )
+
+
+  class H2ClientProtocol:
+      def __init__(
+          self,
+          uri: URI,
+          settings: Settings,
+          conn_lost_deferred: Deferred
+      ) -> None: ...
+      def _check_received_data(self, data: bytes) -> None: ...
+-     def _handle_events(self, events: List[Event]) -> None: ...
+-     def _lose_connection_with_error(self, errors: List[BaseException]) -> None: ...
++     def _handle_events(
++         self,
++         events: List[Union[ResponseReceived, DataReceived, StreamEnded, WindowUpdated, RemoteSettingsChanged, SettingsAcknowledged, Any]]
++     ) -> None: ...
++     def _lose_connection_with_error(
++         self,
++         errors: List[Union[TimeoutError, InvalidNegotiatedProtocol, ProtocolError]]
++     ) -> None: ...
+      def _new_stream(
+          self,
+          request: Request,
+          spider: Spider
+      ) -> Stream: ...
+      def _send_pending_requests(self) -> None: ...
+      def _write_to_transport(self) -> None: ...
+      @property
+      def allowed_max_concurrent_streams(self) -> int: ...
+      def connectionLost(self, reason: Failure = ...) -> None: ...
+      def connectionMade(self) -> None: ...
+      def dataReceived(self, data: bytes) -> None: ...
+      def data_received(self, event: DataReceived) -> None: ...
+      @property
+      def h2_connected(self) -> bool: ...
+      def handshakeCompleted(self) -> None: ...
+      def pop_stream(self, stream_id: int) -> Stream: ...
+      def request(
+          self,
+-         request: Request,
++         request: Union[Request, str],
+?                  ++++++        ++++++
+          spider: Spider
+      ) -> Deferred: ...
+      def response_received(self, event: ResponseReceived) -> None: ...
+      def settings_acknowledged(self, event: SettingsAcknowledged) -> None: ...
+      def stream_ended(self, event: StreamEnded) -> None: ...
+      def timeoutConnection(self) -> None: ...
+      def window_updated(self, event: WindowUpdated) -> None: ...

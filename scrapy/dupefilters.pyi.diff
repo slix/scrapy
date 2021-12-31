@@ -1,0 +1,55 @@
+  from scrapy.http.request import Request
+- from scrapy.settings import BaseSettings
+?                             ----
++ from scrapy.settings import Settings
+- from scrapy.spiders import Spider
+- from twisted.internet.defer import Deferred
++ from tests.spiders import (
++     CrawlSpiderWithParseMethod,
++     DuplicateStartRequestsSpider,
++     FollowAllSpider,
++     SimpleSpider,
++ )
++ from tests.test_engine import TestDupeFilterSpider
+  from typing import (
+      Optional,
+      Type,
++     Union,
+  )
+
+
+  class BaseDupeFilter:
+-     def close(self, reason: str) -> Optional[Deferred]: ...
+?                                     ^^^^  ---- -------
++     def close(self, reason: str) -> None: ...
+?                                     ^
+      @classmethod
+-     def from_settings(cls: Type[~BaseDupeFilterTV], settings: BaseSettings) -> BaseDupeFilterTV: ...
++     def from_settings(
++         cls: Type[~BaseDupeFilterTV],
++         settings: Settings
++     ) -> BaseDupeFilter: ...
+-     def open(self) -> Optional[Deferred]: ...
+?                       ^^^^  ---- -------
++     def open(self) -> None: ...
+?                       ^
+      def request_seen(self, request: Request) -> bool: ...
+
+
+  class RFPDupeFilter:
+      def __init__(self, path: Optional[str] = ..., debug: bool = ...) -> None: ...
+      def close(self, reason: str) -> None: ...
+      @classmethod
+-     def from_settings(cls: Type[~RFPDupeFilterTV], settings: BaseSettings) -> RFPDupeFilterTV: ...
+-     def log(self, request: Request, spider: Spider) -> None: ...
++     def from_settings(
++         cls: Type[~RFPDupeFilterTV],
++         settings: Settings
++     ) -> RFPDupeFilter: ...
++     def log(
++         self,
++         request: Request,
++         spider: Union[FollowAllSpider, TestDupeFilterSpider, CrawlSpiderWithParseMethod, DuplicateStartRequestsSpider, SimpleSpider]
++     ) -> None: ...
+      def request_fingerprint(self, request: Request) -> str: ...
+      def request_seen(self, request: Request) -> bool: ...

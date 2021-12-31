@@ -7,6 +7,9 @@ from zope.interface import implementer
 from scrapy.interfaces import ISpiderLoader
 from scrapy.utils.misc import walk_modules
 from scrapy.utils.spider import iter_spider_classes
+from scrapy.http.request import Request
+from scrapy.settings import Settings
+from typing import Any, List, Type, Union
 
 
 @implementer(ISpiderLoader)
@@ -16,14 +19,14 @@ class SpiderLoader:
     in a Scrapy project.
     """
 
-    def __init__(self, settings):
+    def __init__(self, settings: Settings) -> None:
         self.spider_modules = settings.getlist('SPIDER_MODULES')
         self.warn_only = settings.getbool('SPIDER_LOADER_WARN_ONLY')
         self._spiders = {}
         self._found = defaultdict(list)
         self._load_all_spiders()
 
-    def _check_name_duplicates(self):
+    def _check_name_duplicates(self) -> None:
         dupes = []
         for name, locations in self._found.items():
             dupes.extend([
@@ -45,7 +48,7 @@ class SpiderLoader:
             self._found[spcls.name].append((module.__name__, spcls.__name__))
             self._spiders[spcls.name] = spcls
 
-    def _load_all_spiders(self):
+    def _load_all_spiders(self) -> None:
         for name in self.spider_modules:
             try:
                 for module in walk_modules(name):
@@ -63,10 +66,10 @@ class SpiderLoader:
         self._check_name_duplicates()
 
     @classmethod
-    def from_settings(cls, settings):
+    def from_settings(cls, settings: Settings) -> SpiderLoader:
         return cls(settings)
 
-    def load(self, spider_name):
+    def load(self, spider_name: str) -> Type[Spider1]:
         """
         Return the Spider class for the given spider name. If the spider
         name is not found, raise a KeyError.
@@ -76,7 +79,7 @@ class SpiderLoader:
         except KeyError:
             raise KeyError(f"Spider not found: {spider_name}")
 
-    def find_by_request(self, request):
+    def find_by_request(self, request: Request) -> List[Union[Any, str]]:
         """
         Return the list of spider names that can handle the given request.
         """
@@ -85,7 +88,7 @@ class SpiderLoader:
             if cls.handles_request(request)
         ]
 
-    def list(self):
+    def list(self) -> List[Union[Any, str]]:
         """
         Return a list with the names of all spiders available in the project.
         """

@@ -4,7 +4,7 @@ responses in Scrapy.
 
 See documentation in docs/topics/request-response.rst
 """
-from typing import Generator, Tuple
+from typing import Any, Dict, List, Optional, Union, Generator, Tuple
 from urllib.parse import urljoin
 
 from scrapy.exceptions import NotSupported
@@ -13,6 +13,8 @@ from scrapy.http.headers import Headers
 from scrapy.http.request import Request
 from scrapy.link import Link
 from scrapy.utils.trackref import object_ref
+from ipaddress import IPv4Address
+from twisted.internet._sslverify import Certificate
 
 
 class Response(object_ref):
@@ -32,16 +34,16 @@ class Response(object_ref):
 
     def __init__(
         self,
-        url,
-        status=200,
-        headers=None,
-        body=b"",
-        flags=None,
-        request=None,
-        certificate=None,
-        ip_address=None,
-        protocol=None,
-    ):
+        url: Union[bytes, str],
+        status: Union[int, str]=200,
+        headers: Optional[Union[Headers, Dict[str, bytes], Dict[str, Union[str, int]], Dict[str, filter], Dict[str, str], Dict[Any, Any], Dict[str, Union[bytes, int]], Dict[str, List[str]]]]=None,
+        body: Optional[Union[bytes, str]]=b"",
+        flags: Optional[Union[List[Any], List[str]]]=None,
+        request: Optional[Request]=None,
+        certificate: Optional[Certificate]=None,
+        ip_address: Optional[IPv4Address]=None,
+        protocol: Optional[str]=None,
+    ) -> None:
         self.headers = Headers(headers or {})
         self.status = int(status)
         self._set_body(body)
@@ -53,7 +55,7 @@ class Response(object_ref):
         self.protocol = protocol
 
     @property
-    def cb_kwargs(self):
+    def cb_kwargs(self) -> Dict[str, str]:
         try:
             return self.request.cb_kwargs
         except AttributeError:
@@ -63,7 +65,7 @@ class Response(object_ref):
             )
 
     @property
-    def meta(self):
+    def meta(self) -> Union[Dict[str, float], Dict[str, bool], Dict[str, Union[Request, float, str, int]], Dict[str, List[int]], Dict[str, int], Dict[str, Union[float, str, int]], Dict[str, Union[float, str, int, List[str], List[int]]], Dict[str, str], Dict[Any, Any], Dict[str, Union[float, str]], Dict[str, Union[Request, float, str]], Dict[str, Union[bool, float, str]]]:
         try:
             return self.request.meta
         except AttributeError:
@@ -72,10 +74,10 @@ class Response(object_ref):
                 "is not tied to any request"
             )
 
-    def _get_url(self):
+    def _get_url(self) -> str:
         return self._url
 
-    def _set_url(self, url):
+    def _set_url(self, url: Union[bytes, str]) -> None:
         if isinstance(url, str):
             self._url = url
         else:
@@ -84,10 +86,10 @@ class Response(object_ref):
 
     url = property(_get_url, obsolete_setter(_set_url, 'url'))
 
-    def _get_body(self):
+    def _get_body(self) -> bytes:
         return self._body
 
-    def _set_body(self, body):
+    def _set_body(self, body: Optional[bytes]) -> None:
         if body is None:
             self._body = b''
         elif not isinstance(body, bytes):
@@ -100,23 +102,23 @@ class Response(object_ref):
 
     body = property(_get_body, obsolete_setter(_set_body, 'body'))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"<{self.status} {self.url}>"
 
     __repr__ = __str__
 
-    def copy(self):
+    def copy(self) -> Response:
         """Return a copy of this Response"""
         return self.replace()
 
-    def replace(self, *args, **kwargs):
+    def replace(self, *args, **kwargs) -> Response:
         """Create a new Response with the same attributes except for those given new values"""
         for x in self.attributes:
             kwargs.setdefault(x, getattr(self, x))
         cls = kwargs.pop('cls', self.__class__)
         return cls(*args, **kwargs)
 
-    def urljoin(self, url):
+    def urljoin(self, url: str) -> str:
         """Join this Response's url with a possible relative url to form an
         absolute interpretation of the latter."""
         return urljoin(self.url, url)
@@ -140,9 +142,9 @@ class Response(object_ref):
         """
         raise NotSupported("Response content isn't text")
 
-    def follow(self, url, callback=None, method='GET', headers=None, body=None,
-               cookies=None, meta=None, encoding='utf-8', priority=0,
-               dont_filter=False, errback=None, cb_kwargs=None, flags=None) -> Request:
+    def follow(self, url: Optional[Union[Link, str]], callback: None=None, method: str='GET', headers: None=None, body: None=None,
+               cookies: None=None, meta: None=None, encoding: str='utf-8', priority: int=0,
+               dont_filter: bool=False, errback: None=None, cb_kwargs: None=None, flags: Optional[List[str]]=None) -> Request:
         """
         Return a :class:`~.Request` instance to follow a link ``url``.
         It accepts the same arguments as ``Request.__init__`` method,
@@ -178,9 +180,9 @@ class Response(object_ref):
             flags=flags,
         )
 
-    def follow_all(self, urls, callback=None, method='GET', headers=None, body=None,
-                   cookies=None, meta=None, encoding='utf-8', priority=0,
-                   dont_filter=False, errback=None, cb_kwargs=None, flags=None) -> Generator[Request, None, None]:
+    def follow_all(self, urls: Optional[Union[List[Any], List[str], List[None], int]], callback: None=None, method: str='GET', headers: None=None, body: None=None,
+                   cookies: None=None, meta: None=None, encoding: Optional[str]='utf-8', priority: int=0,
+                   dont_filter: bool=False, errback: None=None, cb_kwargs: None=None, flags: Optional[List[str]]=None) -> Generator[Request, None, None]:
         """
         .. versionadded:: 2.0
 

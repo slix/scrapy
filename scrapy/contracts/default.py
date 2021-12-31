@@ -5,6 +5,9 @@ from itemadapter import is_item, ItemAdapter
 from scrapy.contracts import Contract
 from scrapy.exceptions import ContractFail
 from scrapy.http import Request
+from scrapy.http.request import Request
+from tests.test_contracts import TestItem
+from typing import Any, Callable, Dict, List, Optional, Union
 
 
 # contracts
@@ -15,7 +18,7 @@ class UrlContract(Contract):
 
     name = 'url'
 
-    def adjust_request_args(self, args):
+    def adjust_request_args(self, args: Union[Dict[str, Optional[Union[Callable, str, int]]], Dict[str, Union[bool, Callable]]]) -> Union[Dict[str, Optional[Union[Callable, str, int]]], Dict[str, Union[bool, Callable, str]]]:
         args['url'] = self.args[0]
         return args
 
@@ -29,7 +32,7 @@ class CallbackKeywordArgumentsContract(Contract):
 
     name = 'cb_kwargs'
 
-    def adjust_request_args(self, args):
+    def adjust_request_args(self, args: Dict[str, Optional[Union[Callable, str, int]]]) -> Dict[str, Optional[Union[Callable, str, int, Dict[str, str]]]]:
         args['cb_kwargs'] = json.loads(' '.join(self.args))
         return args
 
@@ -55,7 +58,7 @@ class ReturnsContract(Contract):
         'items': is_item,
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         if len(self.args) not in [1, 2, 3]:
@@ -75,7 +78,7 @@ class ReturnsContract(Contract):
         except IndexError:
             self.max_bound = float('inf')
 
-    def post_process(self, output):
+    def post_process(self, output: List[Union[Request, TestItem, Dict[str, str], Dict[Any, Any]]]) -> None:
         occurrences = 0
         for x in output:
             if self.obj_type_verifier(x):
@@ -99,7 +102,7 @@ class ScrapesContract(Contract):
 
     name = 'scrapes'
 
-    def post_process(self, output):
+    def post_process(self, output: List[Union[Dict[Any, Any], TestItem, Dict[str, str]]]) -> None:
         for x in output:
             if is_item(x):
                 missing = [arg for arg in self.args if arg not in ItemAdapter(x)]

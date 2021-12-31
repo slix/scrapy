@@ -51,7 +51,7 @@ def _matches(url, regexs):
     return any(r.search(url) for r in regexs)
 
 
-def _is_valid_url(url):
+def _is_valid_url(url: str) -> bool:
     return url.split('://', 1)[0] in {'http', 'https', 'file', 'ftp'}
 
 
@@ -59,16 +59,18 @@ class FilteringLinkExtractor:
 
     _csstranslator = HTMLTranslator()
 
-    def __new__(cls, *args, **kwargs):
-        from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
+    def __new__(cls: Union[Type[FilteringLinkExtractor], Type[lxmlhtml.LxmlLinkExtractor]], *args,
+        **kwargs
+    ) -> FilteringLinkExtractor:
+        from scrapy.linkextractors.lxmlhtml import LxmlParserLinkExtractor, LxmlLinkExtractor
         if issubclass(cls, FilteringLinkExtractor) and not issubclass(cls, LxmlLinkExtractor):
             warn('scrapy.linkextractors.FilteringLinkExtractor is deprecated, '
                  'please use scrapy.linkextractors.LinkExtractor instead',
                  ScrapyDeprecationWarning, stacklevel=2)
         return super().__new__(cls)
 
-    def __init__(self, link_extractor, allow, deny, allow_domains, deny_domains,
-                 restrict_xpaths, canonicalize, deny_extensions, restrict_css, restrict_text):
+    def __init__(self, link_extractor: Optional[LxmlParserLinkExtractor], allow: Optional[Union[List[str], Tuple[()], str, Tuple[str]]], deny: Optional[Union[List[str], Tuple[()], str, Tuple[str]]], allow_domains: Optional[Union[List[str], Tuple[()], str, Tuple[str]]], deny_domains: Optional[Union[List[str], Tuple[()], str, Tuple[str]]],
+                 restrict_xpaths: Optional[Union[str, Tuple[()], Tuple[str]]], canonicalize: Optional[bool], deny_extensions: Optional[Union[Tuple[()], List[str]]], restrict_css: Optional[Union[Tuple[()], Tuple[str]]], restrict_text: Optional[Union[List[str], str]]) -> None:
 
         self.link_extractor = link_extractor
 
@@ -91,7 +93,7 @@ class FilteringLinkExtractor:
         self.restrict_text = [x if isinstance(x, _re_type) else re.compile(x)
                               for x in arg_to_iter(restrict_text)]
 
-    def _link_allowed(self, link):
+    def _link_allowed(self, link: Link) -> bool:
         if not _is_valid_url(link.url):
             return False
         if self.allow_res and not _matches(link.url, self.allow_res):
@@ -109,7 +111,7 @@ class FilteringLinkExtractor:
             return False
         return True
 
-    def matches(self, url):
+    def matches(self, url: str) -> bool:
 
         if self.allow_domains and not url_is_from_any_domain(url, self.allow_domains):
             return False
@@ -120,7 +122,7 @@ class FilteringLinkExtractor:
         denied = (regex.search(url) for regex in self.deny_res) if self.deny_res else []
         return any(allowed) and not any(denied)
 
-    def _process_links(self, links):
+    def _process_links(self, links: List[Union[Link, Any]]) -> List[Union[Link, Any]]:
         links = [x for x in links if self._link_allowed(x)]
         if self.canonicalize:
             for link in links:
@@ -128,9 +130,11 @@ class FilteringLinkExtractor:
         links = self.link_extractor._process_links(links)
         return links
 
-    def _extract_links(self, *args, **kwargs):
+    def _extract_links(self, *args, **kwargs) -> List[Union[Link, Any]]:
         return self.link_extractor._extract_links(*args, **kwargs)
 
 
 # Top-level imports
 from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor as LinkExtractor
+from scrapy.link import Link
+from typing import Any, List, Optional, Tuple, Type, Union

@@ -4,7 +4,7 @@ scrapy.http.Request objects
 """
 
 import hashlib
-from typing import Dict, Iterable, Optional, Tuple, Union
+from typing import Callable, Dict, Iterable, Optional, Tuple, Union
 from urllib.parse import urlunparse
 from weakref import WeakKeyDictionary
 
@@ -15,6 +15,8 @@ from scrapy import Request, Spider
 from scrapy.utils.httpobj import urlparse_cached
 from scrapy.utils.misc import load_object
 from scrapy.utils.python import to_bytes, to_unicode
+from scrapy.http.request import Request
+from scrapy.spiders import Spider
 
 
 _fingerprint_cache: "WeakKeyDictionary[Request, Dict[Tuple[Optional[Tuple[bytes, ...]], bool], str]]"
@@ -124,7 +126,7 @@ def request_from_dict(d: dict, *, spider: Optional[Spider] = None) -> Request:
     return request_cls(**kwargs)
 
 
-def _get_method(obj, name):
+def _get_method(obj: Spider, name: str) -> Callable:
     """Helper function for request_from_dict"""
     name = str(name)
     try:
